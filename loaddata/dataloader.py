@@ -5,6 +5,7 @@ import re
 import torch
 import shutil
 import random
+import unicodedata
 # fix the random seed
 import hyperparams as hy
 torch.manual_seed(hy.seed_num)
@@ -68,6 +69,8 @@ class load_data():
         with open(path, encoding="UTF-8") as f:
             lines = f.readlines()
             for line in lines:
+                # copy with "/n"
+                line = unicodedata.normalize('NFKC', line.strip())
                 # init instance
                 inst = instance()
                 line = line.split(" ")
@@ -123,5 +126,5 @@ if __name__ == "__main__":
     dev_data = load_data.loaddate("../pos_test_data/dev.ctb60.pos.hwc", shuffle=True)
     test_data = load_data.loaddate("../pos_test_data/test.ctb60.pos.hwc", shuffle=True)
     create_alphabet = Create_Alphabet(min_freq=1)
-    create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data, debug_index=1)
+    create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data, debug_index=-1)
     # load_data.loaddate("../pos_test_data/test.ctb60.pos.hwc")

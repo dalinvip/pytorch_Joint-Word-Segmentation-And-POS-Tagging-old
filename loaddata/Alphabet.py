@@ -1,5 +1,4 @@
 # coding=utf-8
-
 import torch
 import random
 import collections
@@ -23,7 +22,24 @@ class Create_Alphabet():
         self.word_alphabet = Alphabet(min_freq=min_freq)
         self.char_alphabet = Alphabet(min_freq=min_freq)
         self.bichar_alphabet = Alphabet(min_freq=min_freq)
-        self.pos_alphabet = Alphabet(min_freq=min_freq)
+        # pos min_freq = 1, not cut
+        self.pos_alphabet = Alphabet(min_freq=1)
+        self.label_alphabet = Alphabet(min_freq=min_freq)
+
+        # unkid
+        self.word_UnkkID = None
+        self.char_UnkID = None
+        self.bichar_UnkID = None
+        self.pos_UnkID = None
+
+        # paddingid
+        self.word_PaddingID = None
+        self.char_PaddingID = None
+        self.bichar_PaddingID = None
+        self.pos_PaddingID = None
+
+        self.appID = None
+        self.sepID = None
 
     def createAlphabet(self, train_data=None, dev_data=None, test_data=None, debug_index=-1):
         print("create Alphabet start...... ! ")
@@ -68,6 +84,9 @@ class Create_Alphabet():
                     self.pos_state[pos] = 1
                 else:
                     self.pos_state[pos] += 1
+            # copy with the gold "SEP#PN"
+            for gold in data.gold:
+                self.label_alphabet.loadWord2idAndId2Word(gold)
 
             # copy with the seq/app/unkkey/nullkey/paddingkey
             self.word_state[unkkey] = self.min_freq + 1
@@ -85,6 +104,7 @@ class Create_Alphabet():
                 print(self.char_state, "*************************")
                 print(self.bichar_state, "*************************")
                 print(self.pos_state, "*************************")
+                print(self.label_alphabet.words2id)
                 break
 
         # create the id2words and words2id
@@ -92,11 +112,29 @@ class Create_Alphabet():
         self.char_alphabet.initialWord2idAndId2Word(self.char_state)
         self.bichar_alphabet.initialWord2idAndId2Word(self.bichar_state)
         self.pos_alphabet.initialWord2idAndId2Word(self.pos_state)
-        print(self.word_alphabet.id2words)
-        print(self.word_alphabet.words2id)
-        # print(word_alphabet.words2id)
-        # print(word_alphabet.word2id_id)
-        # print(word_alphabet.m_size)
+
+        # copy with the unkID
+        self.word_UnkkID = self.word_alphabet.loadWord2idAndId2Word(unkkey)
+        self.char_UnkID = self.char_alphabet.loadWord2idAndId2Word(unkkey)
+        self.bichar_UnkID = self.bichar_alphabet.loadWord2idAndId2Word(unkkey)
+        self.pos_UnkID = self.pos_alphabet.loadWord2idAndId2Word(unkkey)
+
+        # copy with the PaddingID
+        self.word_PaddingID = self.word_alphabet.loadWord2idAndId2Word(paddingkey)
+        self.char_PaddingID = self.char_alphabet.loadWord2idAndId2Word(paddingkey)
+        self.bichar_PaddingID = self.bichar_alphabet.loadWord2idAndId2Word(paddingkey)
+        self.pos_PaddingID = self.pos_alphabet.loadWord2idAndId2Word(paddingkey)
+
+        # copy the app seq ID
+        self.appID = self.label_alphabet.loadWord2idAndId2Word(app)
+        self.sepID =self.label_alphabet.loadWord2idAndId2Word(sep)
+        # print(self.appID)
+        # print(self.sepID)
+        # print(self.word_alphabet.id2words)
+        # print(self.word_alphabet.id2words[self.word_UnkkID])
+        # print(self.word_UnkkID)
+        # print(self.word_alphabet.id2words[self.word_PaddingID])
+        # print(self.word_PaddingID)
 
 
 class Alphabet():

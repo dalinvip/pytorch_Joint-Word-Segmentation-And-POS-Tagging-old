@@ -4,8 +4,9 @@ import argparse
 import datetime
 import torch
 import torchtext.data as data
-from loaddata.load_external_word_embedding import Word_Embedding
-from loaddata.dataloader import load_data
+from loaddata.Load_external_word_embedding import Word_Embedding
+from loaddata.Dataloader import load_data, instance
+from loaddata.Alphabet import Create_Alphabet, Alphabet
 import train_ALL_LSTM
 import multiprocessing as mu
 import shutil
@@ -80,8 +81,15 @@ parser.add_argument('-use_cuda', action='store_true', default=hyperparams.use_cu
 args = parser.parse_args()
 
 load_data = load_data()
-# print(args.train_path)
-load_data.loaddate(args.train_path)
+train_data = load_data.loaddate(path=args.train_path, shuffle=True)
+dev_data = load_data.loaddate(path=args.dev_path, shuffle=True)
+test_data = load_data.loaddate(path=args.test_path, shuffle=True)
+create_alphabet = Create_Alphabet(min_freq=1)
+create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data, debug_index=-1)
+# print(create_alphabet.word_state)
+# print(create_alphabet.bichar_alphabet.words2id)
+# print(create_alphabet.bichar_alphabet.m_size)
+
 
 # update parameters
 args.cuda = (args.use_cuda) and torch.cuda.is_available(); del args.use_cuda
