@@ -9,15 +9,9 @@ import random
 import hyperparams as hy
 torch.manual_seed(hy.seed_num)
 random.seed(hy.seed_num)
-
-
-# common later
-unkkey = '-unk-'
-nullkey = '-NULL-'
-paddingkey = '-padding-'
-sep = 'SEP'
-app = 'APP'
-
+from loaddata.Alphabet import Create_Alphabet
+from loaddata.Alphabet import Alphabet
+from loaddata.common import sep, app, paddingkey, unkkey, nullkey
 
 """
    init instance
@@ -125,5 +119,9 @@ class load_data():
 if __name__ == "__main__":
     print("Test dataloader........")
     load_data = load_data()
-    load_data.loaddate("../pos_test_data/train.ctb60.pos.hwc", shuffle=True)
+    train_data = load_data.loaddate("../pos_test_data/train.ctb60.pos.hwc", shuffle=True)
+    dev_data = load_data.loaddate("../pos_test_data/dev.ctb60.pos.hwc", shuffle=True)
+    test_data = load_data.loaddate("../pos_test_data/test.ctb60.pos.hwc", shuffle=True)
+    create_alphabet = Create_Alphabet(min_freq=1)
+    create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data, debug_index=1)
     # load_data.loaddate("../pos_test_data/test.ctb60.pos.hwc")
