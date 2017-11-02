@@ -89,7 +89,7 @@ create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_da
 
 create_iter = Iterators()
 train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=args.batch_size, data=[train_data, dev_data, test_data],
-                                                             operator=create_alphabet)
+                                                             operator=create_alphabet, args=args)
 # train_iter = create_iter.create_mul_iter(batch_size=args.batch_size, data=[train_data],
 #                                                               operator=create_alphabet)
 print(train_iter[0])

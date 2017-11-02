@@ -12,6 +12,7 @@ random.seed(hy.seed_num)
 class Iterators():
     # def __init__(self, batch_size=1, data=None, operator=None):
     def __init__(self):
+        self.args = None
         self.batch_size = None
         self.data = None
         self.operator = None
@@ -20,8 +21,9 @@ class Iterators():
         self.features = []
         self.data_iter = []
 
-    def createIterator(self, batch_size=1, data=None, operator=None):
+    def createIterator(self, batch_size=1, data=None, operator=None, args=None):
         assert isinstance(data, list), "ERROR: data must be in list [train_data,dev_data]"
+        self.args = args
         self.batch_size = batch_size
         self.data = data
         self.operator = operator
@@ -195,7 +197,9 @@ class Iterators():
         features.bichar_left_features = batch_bichar_left_features
         features.bichar_right_features = batch_bichar_right_features
         features.gold_features = batch_gold_features
-
+        if self.args.use_cuda is True:
+            print("features cuda using......")
+            features = features.cuda()
         return features
 
     def padding(self, batch_length, insts, operator=None, batch_features=None, max_size=-1):

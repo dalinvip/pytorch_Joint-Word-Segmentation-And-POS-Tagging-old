@@ -76,8 +76,13 @@
 # end = time.time()
 # print("Times: ", end - start)
 
-
-
+import torch
+import numpy as np
+a = [2.0, 5, 2.0, 2]
+b = [1.5, 0.1, 1, 1]
+c = np.subtract(a, b)
+print(c)
+print(c[0])
 
 
 

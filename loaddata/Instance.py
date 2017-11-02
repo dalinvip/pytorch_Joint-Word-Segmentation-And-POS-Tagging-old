@@ -42,7 +42,10 @@ class Batch_Features:
         self.bichar_right_features = None
         self.gold_features = None
 
-    def cuda(self, gpuID):
-        print("cuda")
-        # if self.word_features is not None:
-            # self.word_features.cuda()
+    def cuda(self):
+        self.word_features.cuda()
+        self.pos_features.cuda()
+        self.char_features.cuda()
+        self.bichar_left_features.cuda()
+        self.bichar_right_features.cuda()
+        self.gold_features.cuda()
