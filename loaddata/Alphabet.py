@@ -6,12 +6,15 @@ from loaddata.common import sep, app, nullkey, paddingkey, unkkey
 import hyperparams as hy
 torch.manual_seed(hy.seed_num)
 random.seed(hy.seed_num)
+
+
 """
   Create alphabet by train/dev/test data
 """
+
+
 class Create_Alphabet():
     def __init__(self, min_freq=1):
-
 
         self.min_freq = min_freq
 

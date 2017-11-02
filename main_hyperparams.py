@@ -81,14 +81,19 @@ parser.add_argument('-use_cuda', action='store_true', default=hyperparams.use_cu
 # option
 args = parser.parse_args()
 
-load_data = load_data()
-train_data = load_data.loaddate(path=args.train_path, shuffle=True)
-dev_data = load_data.loaddate(path=args.dev_path, shuffle=True)
-test_data = load_data.loaddate(path=args.test_path, shuffle=True)
+data_loader = load_data()
+train_data, dev_data, test_data = data_loader.load_data(path=[args.train_path, args.dev_path, args.test_path],
+                                                        shuffle=True)
 create_alphabet = Create_Alphabet(min_freq=1)
 create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
-iter = Iterators(batch_size=args.batch_size, data=train_data, operator=create_alphabet)
-print(iter.features[0].batch_length)
+
+create_iter = Iterators()
+train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=args.batch_size, data=[train_data, dev_data, test_data],
+                                                             operator=create_alphabet)
+# train_iter = create_iter.create_mul_iter(batch_size=args.batch_size, data=[train_data],
+#                                                               operator=create_alphabet)
+print(train_iter[0])
+# print()
 # print(create_alphabet.word_state)
 # print(create_alphabet.bichar_alphabet.words2id)
 # print(create_alphabet.bichar_alphabet.m_size)

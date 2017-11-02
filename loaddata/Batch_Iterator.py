@@ -10,17 +10,28 @@ random.seed(hy.seed_num)
 
 
 class Iterators():
-    def __init__(self, batch_size=1, data=None, operator=None):
-        self.batch_size = batch_size
-        self.data = data
-        self.operator = operator
+    # def __init__(self, batch_size=1, data=None, operator=None):
+    def __init__(self):
+        self.batch_size = None
+        self.data = None
+        self.operator = None
         self.iterator = []
         self.batch = []
         self.features = []
-        # Iterators.createIterator(self)
-        self.convert_word2id(self.data, self.operator)
-        print("words_index", self.data[0].words_index)
-        self.createIterator(insts=self.data, operator=self.operator)
+        self.data_iter = []
+
+    def createIterator(self, batch_size=1, data=None, operator=None):
+        assert isinstance(data, list), "ERROR: data must be in list [train_data,dev_data]"
+        self.batch_size = batch_size
+        self.data = data
+        self.operator = operator
+        for id_data in range(len(data)):
+            print("*****************    create {} iterator    **************".format(id_data + 1))
+            self.convert_word2id(self.data[id_data], self.operator)
+            self.features = self.create_onedata_Iterator(insts=self.data[id_data], operator=self.operator)
+            self.data_iter.append(self.features)
+            self.features = []
+        return self.data_iter[0], self.data_iter[1], self.data_iter[2]
 
     def convert_word2id(self, insts, operator):
         # print(len(insts))
@@ -64,7 +75,7 @@ class Iterators():
                 if bichar_right_ID is None:
                     bichar_right_ID = operator.bichar_UnkID
                 inst.bichars_right_index.append(bichar_right_ID)
-            print(inst.bichars_right_index)
+            # print(inst.bichars_right_index)
 
             # copy with the gold
             for index in range(inst.gold_size):
@@ -73,7 +84,7 @@ class Iterators():
                 inst.gold_index.append(goldID)
             # print(inst.gold_index)
 
-    def createIterator(self, insts, operator):
+    def create_onedata_Iterator(self, insts, operator):
         batch = []
         count_inst = 0
         for index, inst in enumerate(insts):
@@ -81,15 +92,15 @@ class Iterators():
             count_inst += 1
             # print(batch)
             if len(batch) == self.batch_size or count_inst == len(insts):
-                print("aaaa", len(batch))
+                # print("aaaa", len(batch))
                 one_batch = self.create_one_batch(insts=batch, batch_size=self.batch_size, operator=operator)
                 self.features.append(one_batch)
                 batch = []
-        print("all ready create iterator", self.features)
+        print("The all data has created iterator.")
         return self.features
 
     def create_one_batch(self, insts, batch_size, operator):
-        print("create one batch......")
+        # print("create one batch......")
         batch_length = len(insts)
         # copy with the max length for padding
         max_word_size = -1

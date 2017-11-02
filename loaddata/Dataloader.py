@@ -17,9 +17,19 @@ random.seed(hy.seed_num)
 
 class load_data():
 
-    def __init__(self):
+    def __init__(self, path=[], shuffle=False):
         print("load data for train/dev/test")
         self.debug_index = 10
+        self.path = path
+        self.date_list = []
+        # self.shuffle = shuffle
+        # print(len(self.path))
+        # print(self.path)
+        # self.return_mul_data()
+        # print(self.path.size)
+        # print(self.date_list[0])
+        # print(self.date_list[1])
+        # print("asdasd", self.date_list)
 
     def clean_str(self, string):
         """
@@ -41,7 +51,15 @@ class load_data():
         string = re.sub(r"\s{2,}", " ", string)
         return string.strip()
 
-    def loaddate(self, path, shuffle=False):
+    def load_data(self, path=None, shuffle=False):
+        assert isinstance(path, list), "path must be in list"
+        for id_data in range(len(path)):
+            print(path[id_data])
+            insts = self.load_one_date(path=path[id_data], shuffle=shuffle)
+            self.date_list.append(insts)
+        return self.date_list[0], self.date_list[1], self.date_list[2]
+
+    def load_one_date(self, path=None, shuffle=False):
         print("loading {} data......".format(path))
         assert path is not None
         insts = []
@@ -102,10 +120,17 @@ class load_data():
 
 if __name__ == "__main__":
     print("Test dataloader........")
-    load_data = load_data()
-    train_data = load_data.loaddate("../pos_test_data/train.ctb60.pos.hwc", shuffle=True)
-    dev_data = load_data.loaddate("../pos_test_data/dev.ctb60.pos.hwc", shuffle=True)
-    test_data = load_data.loaddate("../pos_test_data/test.ctb60.pos.hwc", shuffle=True)
-    create_alphabet = Create_Alphabet(min_freq=1)
-    create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data, debug_index=-1)
+    loaddata = load_data()
+    # train_data, dev_data, test_data = loaddata.load_data(path=("../pos_test_data/train.ctb60.pos.hwc", "../pos_test_data/dev.ctb60.pos.hwc",
+    #                             "../pos_test_data/test.ctb60.pos.hwc"), shuffle=True)
+    train_data, dev_data, test_data = loaddata.load_data(path=["../pos_test_data/train.ctb60.pos.hwc", "../pos_test_data/train.ctb60.pos.hwc"
+        , "../pos_test_data/train.ctb60.pos.hwc"], shuffle=True)
+    # print("\n\n\n\n")
+    # print(train_data)
+    # print("\n\n\n\n")
+    # print(dev_data)
+    # print("\n\n\n\n")
+    # print(test_data)
+    # create_alphabet = Create_Alphabet(min_freq=1)
+    # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data, debug_index=-1)
     # load_data.loaddate("../pos_test_data/test.ctb60.pos.hwc")
