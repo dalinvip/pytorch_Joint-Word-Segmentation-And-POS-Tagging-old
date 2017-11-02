@@ -12,6 +12,7 @@ random.seed(hy.seed_num)
 class Create_Alphabet():
     def __init__(self, min_freq=1):
 
+
         self.min_freq = min_freq
 
         self.word_state = collections.OrderedDict()

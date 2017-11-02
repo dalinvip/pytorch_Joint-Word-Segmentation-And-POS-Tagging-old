@@ -9,18 +9,68 @@ random.seed(hy.seed_num)
 
 
 class Iterators():
-    def __init__(self, batch_size=1, examples=None, word_operator=None,
-                 label_operator=None, unk_id=None, pad_id=None):
+    def __init__(self, batch_size=1, examples=None, operator=None):
         self.batch_size = batch_size
         self.example = examples
+        self.operator = operator
         self.iterator = []
         self.batch = []
-        self.word_operator = word_operator
-        self.label_operator = label_operator
-        self.unk_id = unk_id
-        self.pad_id = pad_id
         self.dataIterator = []
-        Iterators.createIterator(self)
+        # Iterators.createIterator(self)
+        Iterators.convert_word2id(self, self.example, self.operator)
+
+    def convert_word2id(self, insts, operator):
+        # print(len(insts))
+        for index, inst in enumerate(insts):
+            # copy with the word and pos
+            for index in range(inst.words_size):
+                word = inst.words[index]
+                wordID = operator.word_alphabet.loadWord2idAndId2Word(word)
+                if wordID is None:
+                    wordID = operator.word_UnkkID
+                inst.words_index.append(wordID)
+
+                pos = inst.pos[index]
+                posID = operator.pos_alphabet.loadWord2idAndId2Word(pos)
+                if posID is None:
+                    posID = operator.pos_UnkID
+                inst.pos_index.append(posID)
+            # print(inst.words_index)
+            # print(inst.pos_index)
+            # copy with the char
+            for index in range(inst.chars_size):
+                char = inst.chars[index]
+                charID = operator.char_alphabet.loadWord2idAndId2Word(char)
+                if charID is None:
+                    charID = operator.char_UnkID
+                inst.chars_index.append(charID)
+            # print(inst.chars_index)
+            # copy with the bichar_left
+            for index in range(inst.bichars_size):
+                bichar_left = inst.bichars_left[index]
+                bichar_left_ID = operator.bichar_alphabet.loadWord2idAndId2Word(bichar_left)
+                if bichar_left_ID is None:
+                    bichar_left_ID = operator.bichar_UnkID
+                inst.bichars_left_index.append(bichar_left_ID)
+            # print(inst.bichars_left_index)
+
+            # copy with the bichar_right
+            for index in range(inst.bichars_size):
+                bichar_right = inst.bichars_right[index]
+                bichar_right_ID = operator.bichar_alphabet.loadWord2idAndId2Word(bichar_right)
+                if bichar_right_ID is None:
+                    bichar_right_ID = operator.bichar_UnkID
+                inst.bichars_right_index.append(bichar_right_ID)
+            print(inst.bichars_right_index)
+
+            # copy with the gold
+            for index in range(inst.gold_size):
+                gold = inst.gold[index]
+                goldID = operator.label_alphabet.loadWord2idAndId2Word(gold)
+                inst.gold_index.append(goldID)
+            # print(inst.gold_index)
+
+
 
     def batch(self, datasets, batch_size, max):
         for data in datasets:
@@ -53,16 +103,16 @@ class Iterators():
         batch = []
         count = 0
         max = 0
-        for word_label in self.example:
+        for inst in self.example:
             text = []
             label = []
-            for word in word_label.text:
+            for word in inst.text:
                 # print(word)
                 if word in self.word_operator.word2index:
                     text.append(self.word_operator.word2index[word])
                 else:
                     text.append(self.unk_id)
-            label.append(self.label_operator.word2index[word_label.label])
+            label.append(self.label_operator.word2index[word.label])
             batch.append((text, label))
             if len(batch[-1][0]) > max:
                 max = len(batch[-1][0])

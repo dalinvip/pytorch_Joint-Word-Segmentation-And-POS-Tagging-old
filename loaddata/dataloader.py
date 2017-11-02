@@ -28,7 +28,7 @@ class instance():
         self.chars_size = 0
         self.bichars_left = []
         self.bichars_right = []
-        self.bichars_size = []
+        self.bichars_size = 0
 
         self.gold = []
         self.pos = []
@@ -36,11 +36,20 @@ class instance():
         self.gold_seg = []
         self.gold_size = 0
 
+        self.words_index = []
+        self.chars_index = []
+        self.bichars_left_index = []
+        self.bichars_right_index = []
+        self.pos_index = []
+        self.gold_index = []
+
+
 
 class load_data():
 
     def __init__(self):
         print("load data for train/dev/test")
+        self.debug_index = 1
 
     def clean_str(self, string):
         """
@@ -68,7 +77,7 @@ class load_data():
         insts = []
         with open(path, encoding="UTF-8") as f:
             lines = f.readlines()
-            for line in lines:
+            for index, line in enumerate(lines):
                 # copy with "/n"
                 line = unicodedata.normalize('NFKC', line.strip())
                 # init instance
@@ -111,6 +120,8 @@ class load_data():
                 inst.gold_size = len(inst.gold)
                 # add one inst that represent one sentence into the list
                 insts.append(inst)
+                if index == self.debug_index:
+                    break
         if shuffle is True:
             print("shuffle tha data......")
             random.shuffle(insts)

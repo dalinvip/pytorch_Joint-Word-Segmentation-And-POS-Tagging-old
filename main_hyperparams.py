@@ -7,6 +7,7 @@ import torchtext.data as data
 from loaddata.Load_external_word_embedding import Word_Embedding
 from loaddata.Dataloader import load_data, instance
 from loaddata.Alphabet import Create_Alphabet, Alphabet
+from loaddata.Batch_Iterator import Iterators
 import train_ALL_LSTM
 import multiprocessing as mu
 import shutil
@@ -85,7 +86,8 @@ train_data = load_data.loaddate(path=args.train_path, shuffle=True)
 dev_data = load_data.loaddate(path=args.dev_path, shuffle=True)
 test_data = load_data.loaddate(path=args.test_path, shuffle=True)
 create_alphabet = Create_Alphabet(min_freq=1)
-create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data, debug_index=-1)
+create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
+iter = Iterators(batch_size=args.batch_size, examples=train_data, operator=create_alphabet)
 # print(create_alphabet.word_state)
 # print(create_alphabet.bichar_alphabet.words2id)
 # print(create_alphabet.bichar_alphabet.m_size)
