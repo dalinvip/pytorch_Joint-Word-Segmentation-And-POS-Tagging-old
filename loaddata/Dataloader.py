@@ -6,50 +6,20 @@ import torch
 import shutil
 import random
 import unicodedata
+from loaddata.Alphabet import Create_Alphabet
+from loaddata.Instance import instance
+from loaddata.common import sep, app, paddingkey, unkkey, nullkey
 # fix the random seed
 import hyperparams as hy
 torch.manual_seed(hy.seed_num)
 random.seed(hy.seed_num)
-from loaddata.Alphabet import Create_Alphabet
-from loaddata.Alphabet import Alphabet
-from loaddata.common import sep, app, paddingkey, unkkey, nullkey
-
-"""
-   init instance
-"""
-class instance():
-
-    def __init__(self):
-        # print("init instance......")
-
-        self.words = []
-        self.words_size = 0
-        self.chars = []
-        self.chars_size = 0
-        self.bichars_left = []
-        self.bichars_right = []
-        self.bichars_size = 0
-
-        self.gold = []
-        self.pos = []
-        self.gold_pos = []
-        self.gold_seg = []
-        self.gold_size = 0
-
-        self.words_index = []
-        self.chars_index = []
-        self.bichars_left_index = []
-        self.bichars_right_index = []
-        self.pos_index = []
-        self.gold_index = []
-
 
 
 class load_data():
 
     def __init__(self):
         print("load data for train/dev/test")
-        self.debug_index = 1
+        self.debug_index = 10
 
     def clean_str(self, string):
         """

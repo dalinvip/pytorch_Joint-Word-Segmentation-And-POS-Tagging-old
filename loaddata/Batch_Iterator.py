@@ -3,21 +3,24 @@ import torch
 from torch.autograd import Variable
 import random
 from loaddata.common import sep, app, nullkey, paddingkey, unkkey
+from loaddata.Instance import instance, Batch_Features
 import hyperparams as hy
 torch.manual_seed(hy.seed_num)
 random.seed(hy.seed_num)
 
 
 class Iterators():
-    def __init__(self, batch_size=1, examples=None, operator=None):
+    def __init__(self, batch_size=1, data=None, operator=None):
         self.batch_size = batch_size
-        self.example = examples
+        self.data = data
         self.operator = operator
         self.iterator = []
         self.batch = []
-        self.dataIterator = []
+        self.features = []
         # Iterators.createIterator(self)
-        Iterators.convert_word2id(self, self.example, self.operator)
+        self.convert_word2id(self.data, self.operator)
+        print("words_index", self.data[0].words_index)
+        self.createIterator(insts=self.data, operator=self.operator)
 
     def convert_word2id(self, insts, operator):
         # print(len(insts))
@@ -70,57 +73,137 @@ class Iterators():
                 inst.gold_index.append(goldID)
             # print(inst.gold_index)
 
-
-
-    def batch(self, datasets, batch_size, max):
-        for data in datasets:
-            if len(data[0]) == max:
-                continue
-            for i in range(max - len(data[0])):
-                # data[0].append(self.unk_id)
-                data[0].append(self.pad_id)
-        minibatch = []
-        minibatch_text = []
-        minibatch_label = []
-        for ex in datasets:
-            minibatch_text.append(ex[0])
-            minibatch_label.append(ex[1][0])
-            if len(minibatch_text) == batch_size:
-                minibatch_text = Variable(torch.LongTensor(minibatch_text))
-                minibatch_label = Variable(torch.LongTensor(minibatch_label))
-                minibatch.append(minibatch_text)
-                minibatch.append(minibatch_label)
-                return minibatch
-        if minibatch_text or minibatch_label:
-            minibatch_text = Variable(torch.LongTensor(minibatch_text))
-            minibatch_label = Variable(torch.LongTensor(minibatch_label))
-            minibatch.append(minibatch_text)
-            minibatch.append(minibatch_label)
-            return minibatch
-
-    def createIterator(self):
-        # print("aaa")
+    def createIterator(self, insts, operator):
         batch = []
-        count = 0
-        max = 0
-        for inst in self.example:
-            text = []
-            label = []
-            for word in inst.text:
-                # print(word)
-                if word in self.word_operator.word2index:
-                    text.append(self.word_operator.word2index[word])
-                else:
-                    text.append(self.unk_id)
-            label.append(self.label_operator.word2index[word.label])
-            batch.append((text, label))
-            if len(batch[-1][0]) > max:
-                max = len(batch[-1][0])
-            count += 1
+        count_inst = 0
+        for index, inst in enumerate(insts):
+            batch.append(inst)
+            count_inst += 1
             # print(batch)
-            if len(batch) == self.batch_size or count == len(self.example):
-                # print("aaaa")
-                batchs = Iterators.batch(self, datasets=batch, batch_size=self.batch_size, max=max)
-                self.dataIterator.append(batchs)
+            if len(batch) == self.batch_size or count_inst == len(insts):
+                print("aaaa", len(batch))
+                one_batch = self.create_one_batch(insts=batch, batch_size=self.batch_size, operator=operator)
+                self.features.append(one_batch)
                 batch = []
-                max = 0
+        print("all ready create iterator", self.features)
+        return self.features
+
+    def create_one_batch(self, insts, batch_size, operator):
+        print("create one batch......")
+        batch_length = len(insts)
+        # copy with the max length for padding
+        max_word_size = -1
+        max_char_size = -1
+        max_bichar_size = -1
+        max_gold_size = -1
+        max_pos_size = -1
+        for _, inst in enumerate(insts):
+            word_size = inst.words_size
+            if word_size > max_word_size:
+                max_word_size = word_size
+            char_size = inst.chars_size
+            if char_size > max_char_size:
+                max_char_size = char_size
+            bichar_size = inst.bichars_size
+            if bichar_size > max_bichar_size:
+                max_bichar_size = bichar_size
+            gold_size = inst.gold_size
+            if gold_size > max_gold_size:
+                max_gold_size = gold_size
+
+            # create with the Tensor/Variable
+            # word features
+
+        batch_word_features = Variable(torch.LongTensor(batch_length, max_word_size))
+        batch_pos_features = Variable(torch.LongTensor(batch_length, max_word_size))
+        batch_char_features = Variable(torch.LongTensor(batch_length, max_char_size))
+        batch_bichar_left_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
+        batch_bichar_right_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
+        batch_gold_features = Variable(torch.LongTensor(max_gold_size * batch_length))
+
+        # print(batch_gold_features)
+
+        for id_inst in range(batch_length):
+            inst = insts[id_inst]
+            # print(inst.words_index)
+            # copy with the word features
+            for id_word_index in range(max_word_size):
+                if id_word_index < inst.words_size:
+                    batch_word_features.data[id_inst][id_word_index] = inst.words_index[id_word_index]
+                else:
+                    # print(operator.word_PaddingID)
+                    batch_word_features.data[id_inst][id_word_index] = operator.word_PaddingID
+
+            # copy with the pos features
+            for id_pos_index in range(max_word_size):
+                if id_pos_index < inst.words_size:
+                    batch_pos_features.data[id_inst][id_pos_index] = inst.pos_index[id_pos_index]
+                else:
+                    # print("aaa", operator.pos_PaddingID)
+                    batch_pos_features.data[id_inst][id_pos_index] = operator.pos_PaddingID
+
+            # copy with the char features
+            for id_char_index in range(max_char_size):
+                if id_char_index < inst.chars_size:
+                    batch_char_features.data[id_inst][id_char_index] = inst.chars_index[id_char_index]
+                else:
+                    # print("aaa", operator.char_PaddingID)
+                    batch_char_features.data[id_inst][id_char_index] = operator.char_PaddingID
+
+            # copy with the bichar_left features
+            for id_bichar_left_index in range(max_bichar_size):
+                if id_bichar_left_index < inst.bichars_size:
+                    batch_bichar_left_features.data[id_inst][id_bichar_left_index] = inst.bichars_left_index[
+                        id_bichar_left_index]
+                else:
+                    # print("aaa", operator.bichar_PaddingID)
+                    batch_bichar_left_features.data[id_inst][id_bichar_left_index] = operator.bichar_PaddingID
+
+            # copy with the bichar_right features
+            for id_bichar_right_index in range(max_bichar_size):
+                if id_bichar_right_index < inst.bichars_size:
+
+                    batch_bichar_right_features.data[id_inst][id_bichar_right_index] = inst.bichars_left_index[
+                        id_bichar_right_index]
+                else:
+                    batch_bichar_right_features.data[id_inst][id_bichar_right_index] = operator.bichar_PaddingID
+
+            # copy with the gold features
+            for id_gold_index in range(max_gold_size):
+                if id_gold_index < inst.gold_size:
+                    batch_gold_features.data[id_gold_index + id_inst * max_gold_size] = inst.gold_index[id_gold_index]
+                else:
+                    batch_gold_features.data[id_gold_index + id_inst * max_gold_size] = 0
+
+        # batch
+        features = Batch_Features()
+        features.batch_length = batch_length
+        features.word_features = batch_word_features
+        features.pos_features = batch_pos_features
+        features.char_features = batch_char_features
+        features.bichar_left_features = batch_bichar_left_features
+        features.bichar_right_features = batch_bichar_right_features
+        features.gold_features = batch_gold_features
+
+        return features
+
+    def padding(self, batch_length, insts, operator=None, batch_features=None, max_size=-1):
+        print("padding")
+        for id_inst in range(batch_length):
+            inst = insts[id_inst]
+            for id_word_index in range(max_size):
+                if id_word_index < inst.words_size:
+                    print("Failed to write a function for all")
+
+        return ""
+
+
+
+
+
+
+
+
+
+
+
