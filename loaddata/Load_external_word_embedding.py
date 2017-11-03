@@ -51,7 +51,7 @@ class Word_Embedding():
         for word in vocab:
             if word in word_vecs:
                 word_vecs_numpy.append(word_vecs[word])
-        print(len(word_vecs_numpy))
+        # print(len(word_vecs_numpy))
         col = []
         for i in range(k):
             sum = 0.0

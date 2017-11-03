@@ -5,7 +5,7 @@ import torch.nn as nn
 import  torch.nn.functional as F
 from torch.autograd import Variable
 import torch.nn.init as init
-import numpy
+import numpy as np
 import random
 import hyperparams as hy
 torch.manual_seed(hy.seed_num)
@@ -30,8 +30,30 @@ class Encoder(nn.Module):
         self.static_char_embed = nn.Embedding(self.args.embed_char_num, self.args.embed_char_dim)
         self.static_bichar_embed = nn.Embedding(self.args.embed_bichar_num, self.args.embed_bichar_dim)
 
+        # load external word embedding
+        if args.char_Embedding is True:
+            pretrained_char_weight = np.array(args.pre_char_word_vecs)
+            self.static_char_embed.weight.data.copy_(torch.from_numpy(pretrained_char_weight))
+            self.static_char_embed.weight.requires_grad = False
+
+        if args.bichar_Embedding is True:
+            pretrained_bichar_weight = np.array(args.pre_bichar_word_vecs)
+            self.static_bichar_embed.weight.data.copy_(torch.from_numpy(pretrained_bichar_weight))
+            self.static_bichar_embed.weight.requires_grad = False
+
         self.lstm_left = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
         self.lstm_right = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
+
+        # init lstm weight and bias
+        init.xavier_uniform(self.lstm_left.weight_ih_l0)
+        init.xavier_uniform(self.lstm_left.weight_hh_l0)
+        init.xavier_uniform(self.lstm_right.weight_ih_l0)
+        init.xavier_uniform(self.lstm_right.weight_hh_l0)
+        value = np.sqrt(6 / self.args.rnn_hidden_dim + 1)
+        self.lstm_left.bias_ih_l0.data.uniform_(-value, value)
+        self.lstm_left.bias_hh_l0.data.uniform_(-value, value)
+        self.lstm_right.bias_ih_l0.data.uniform_(-value, value)
+        self.lstm_right.bias_hh_l0.data.uniform_(-value, value)
 
         self.hidden = self.init_hidden_cell(self.args.rnn_num_layers, self.args.batch_size)
 
@@ -40,6 +62,12 @@ class Encoder(nn.Module):
 
         self.input_dim = (self.args.embed_char_dim + self.args.embed_bichar_dim) * 2
         self.liner = nn.Linear(in_features=self.input_dim, out_features=self.args.hidden_size, bias=True)
+
+        # init linear
+        init.xavier_uniform(self.liner.weight)
+        init_linear_value = np.sqrt(6 / self.args.hidden_size + 1)
+        self.liner.bias.data.uniform_(-init_linear_value, init_linear_value)
+
 
     def init_hidden_cell(self, num_layers=1, batch_size=1):
         # the first is the hidden h

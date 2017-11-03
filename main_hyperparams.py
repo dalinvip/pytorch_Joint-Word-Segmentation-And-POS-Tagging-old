@@ -78,6 +78,11 @@ parser.add_argument('-min_freq', type=int, default=hyperparams.min_freq, help='m
 parser.add_argument('-embed_char_dim', type=int, default=hyperparams.embed_char_dim, help='number of char embedding dimension [default: 200]')
 parser.add_argument('-embed_bichar_dim', type=int, default=hyperparams.embed_bichar_dim, help='number of bichar embedding dimension [default: 200]')
 parser.add_argument('-hidden_size', type=int, default=hyperparams.hidden_size, help='hidden dimension [default: 200]')
+# word embedding
+parser.add_argument('-char_Embedding', action='store_true', default=hyperparams.char_Embedding, help='whether to load char embedding')
+parser.add_argument('-char_Embedding_path', type=str, default=hyperparams.char_Embedding_path, help='char_Embedding_path')
+parser.add_argument('-bichar_Embedding', action='store_true', default=hyperparams.bichar_Embedding, help='whether to load bichar embedding')
+parser.add_argument('-bichar_Embedding_Path', type=str, default=hyperparams.bichar_Embedding_Path, help='bichar_Embedding_Path')
 # seed number
 parser.add_argument('-seed_num', type=float, default=hy.seed_num, help='value of init seed number')
 # nums of threads
@@ -111,7 +116,30 @@ def dalaloader(args):
 # get iter
 train_iter, dev_iter, test_iter, create_alphabet = dalaloader(args)
 
+# print(create_alphabet.char_alphabet.id2words)
+
+if args.char_Embedding is True:
+    print("loading char embedding.......")
+    char_word_vecs = Word_Embedding().load_my_vecs(path=args.char_Embedding_path, vocab=create_alphabet.char_alphabet.id2words,
+                                            freqs=None, k=args.embed_char_dim)
+    char_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=char_word_vecs, vocab=create_alphabet.char_alphabet.id2words,
+                                                          k=args.embed_char_dim)
+    # print(char_word_vecs)
+
+if args.bichar_Embedding is True:
+    print("loading bichar embedding.......")
+    bichar_word_vecs = Word_Embedding().load_my_vecs(path=args.bichar_Embedding_Path,
+                                                     vocab=create_alphabet.bichar_alphabet.id2words,
+                                                     freqs=None, k=args.embed_bichar_dim)
+    bichar_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=bichar_word_vecs,
+                                                                 vocab=create_alphabet.bichar_alphabet.id2words,
+                                                                 k=args.embed_bichar_dim)
+    # print(bichar_word_vecs)
+
+
 # update parameters
+args.pre_char_word_vecs = char_word_vecs
+args.pre_bichar_word_vecs = bichar_word_vecs
 args.use_cuda = (args.use_cuda) and torch.cuda.is_available()
 args.embed_char_num = create_alphabet.char_alphabet.m_size
 args.embed_bichar_num = create_alphabet.bichar_alphabet.m_size
@@ -131,8 +159,8 @@ if os.path.exists("./Parameters.txt"):
     os.remove("./Parameters.txt")
 file = open("Parameters.txt", "a")
 for attr, value in sorted(args.__dict__.items()):
-    # if attr.upper() != "PRETRAINED_WEIGHT" and attr.upper() != "pretrained_weight_static".upper():
-    print("\t{}={}".format(attr.upper(), value))
+    if attr.upper() != "PRE_CHAR_WORD_VECS" and attr.upper() != "PRE_BICHAR_WORD_VECS":
+        print("\t{}={}".format(attr.upper(), value))
     file.write("\t{}={}\n".format(attr.upper(), value))
 file.close()
 shutil.copy("./Parameters.txt", "./snapshot/" + mulu + "/Parameters.txt")

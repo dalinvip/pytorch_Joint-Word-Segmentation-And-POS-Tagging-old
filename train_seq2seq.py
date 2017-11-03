@@ -23,8 +23,13 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
 
     if args.Adam is True:
         print("Adam Training......")
-        optimizer_encoder = torch.optim.Adam(model_encoder.parameters(), lr=args.lr, weight_decay=args.init_weight_decay)
-        optimizer_decoder = torch.optim.Adam(model_decoder.parameters(), lr=args.lr, weight_decay=args.init_weight_decay)
+        optimizer_encoder = torch.optim.Adam(params=filter(lambda p: p.requires_grad, model_encoder.parameters()),
+                                             lr=args.lr, weight_decay=args.init_weight_decay)
+        optimizer_decoder = torch.optim.Adam(params=filter(lambda p: p.requires_grad, model_decoder.parameters()),
+                                             lr=args.lr,
+                                             weight_decay=args.init_weight_decay)
+        # optimizer_encoder = torch.optim.Adam(model_encoder.parameters(), lr=args.lr, weight_decay=args.init_weight_decay)
+        # optimizer_decoder = torch.optim.Adam(model_decoder.parameters(), lr=args.lr, weight_decay=args.init_weight_decay)
 
     steps = 0
     model_count = 0
@@ -53,8 +58,14 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             decoder_out = model_decoder(batch_features, encoder_out)
             # print(decoder_out.size())
 
-            loss = F.cross_entropy(decoder_out, batch_features.gold_features)
+            loss = F.nll_loss(decoder_out, batch_features.gold_features)
+            # loss = F.cross_entropy(decoder_out, batch_features.gold_features)
             print("loss {}".format(loss.data[0]))
+
+            loss.bachward()
+
+            optimizer_encoder.step()
+            optimizer_decoder.step()
 
 
 
