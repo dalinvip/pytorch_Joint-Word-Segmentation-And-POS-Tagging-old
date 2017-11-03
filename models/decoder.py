@@ -24,7 +24,8 @@ class Decoder(nn.Module):
         self.args = args
 
         self.liner = nn.Linear(in_features=200, out_features=2)
-    def forward(self, features):
+
+    def forward(self, features, encoder_out):
         print("Decoder forward")
 
         return ""

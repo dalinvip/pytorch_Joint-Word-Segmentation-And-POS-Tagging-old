@@ -77,6 +77,7 @@ parser.add_argument('-min_freq', type=int, default=hyperparams.min_freq, help='m
 # encoder model and decoder model
 parser.add_argument('-embed_char_dim', type=int, default=hyperparams.embed_char_dim, help='number of char embedding dimension [default: 200]')
 parser.add_argument('-embed_bichar_dim', type=int, default=hyperparams.embed_bichar_dim, help='number of bichar embedding dimension [default: 200]')
+parser.add_argument('-hidden_size', type=int, default=hyperparams.hidden_size, help='hidden dimension [default: 200]')
 # seed number
 parser.add_argument('-seed_num', type=float, default=hy.seed_num, help='value of init seed number')
 # nums of threads
@@ -139,6 +140,8 @@ shutil.copy("./hyperparams.py", "./snapshot/" + mulu)
 # load model
 model_encoder = encoder.Encoder(args=args)
 model_decoder = decoder.Decoder(args=args)
+print(model_encoder)
+print(model_decoder)
 if args.use_cuda is True:
     model_encoder = model_encoder.cuda()
     model_decoder = model_decoder.cuda()

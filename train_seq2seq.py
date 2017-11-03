@@ -34,11 +34,58 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
     time_list = []
     for epoch in range(1, args.epochs+1):
         print("\n## 第{} 轮迭代，共计迭代 {} 次 ！##\n".format(epoch, args.epochs))
-        print("optimizer_encoder now lr is {} \n".format(optimizer_encoder.param_groups[0].get("lr")))
+        print("optimizer_encoder now lr is {}".format(optimizer_encoder.param_groups[0].get("lr")))
         print("optimizer_decoder now lr is {} \n".format(optimizer_decoder.param_groups[0].get("lr")))
-        for batch_features in train_iter:
-            print(batch_features.gold_features)
-            print(batch_features.char_features)
+
+        # shuffle
+        random.shuffle(train_iter)
+        random.shuffle(dev_iter)
+        random.shuffle(test_iter)
+
+        for batch_count, batch_features in enumerate(train_iter):
+            print("batch_count", batch_count)
+            print(batch_features)
+
+            model_encoder.zero_grad()
+            model_decoder.zero_grad()
+
+            encoder_out = model_encoder(batch_features)
+            decoder_out = model_decoder(batch_features, encoder_out)
+            print(decoder_out)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
