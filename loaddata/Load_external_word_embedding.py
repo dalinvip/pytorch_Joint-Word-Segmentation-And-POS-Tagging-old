@@ -1,5 +1,16 @@
 # coding=utf-8
+import torch
+import random
 import numpy as np
+import hyperparams as hy
+torch.manual_seed(hy.seed_num)
+random.seed(hy.seed_num)
+
+"""
+    load external word embedding
+"""
+
+
 class Word_Embedding():
     def __init__(self):
         print("loading external word embedding")

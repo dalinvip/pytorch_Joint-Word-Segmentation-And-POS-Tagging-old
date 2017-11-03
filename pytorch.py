@@ -78,11 +78,14 @@
 
 import torch
 import numpy as np
-a = [2.0, 5, 2.0, 2]
-b = [1.5, 0.1, 1, 1]
-c = np.subtract(a, b)
-print(c)
-print(c[0])
+# a = [2.0, 5, 2.0, 2]
+# b = [1.5, 0.1, 1, 1]
+# c = np.subtract(a, b)
+# print(c)
+# print(c[0])
+
+a = np.random.rand(240000,5)
+print(a)
 
 
 

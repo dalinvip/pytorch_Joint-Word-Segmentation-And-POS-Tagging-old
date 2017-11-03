@@ -154,11 +154,22 @@ class Alphabet():
             if data[key] >= self.min_freq:
                 Alphabet.loadWord2idAndId2Word(self, key)
 
+    # def loadWord2idAndId2Word(self, string):
+    #     if string in self.words2id:
+    #         return self.words2id[string]
+    #     new_id = self.word2id_id
+    #     self.id2words.append(string)
+    #     self.words2id[string] = new_id
+    #     self.word2id_id += 1
+    #     self.m_size = self.word2id_id
+
     def loadWord2idAndId2Word(self, string):
         if string in self.words2id:
             return self.words2id[string]
-        new_id = self.word2id_id
-        self.id2words.append(string)
-        self.words2id[string] = new_id
-        self.word2id_id += 1
-        self.m_size = self.word2id_id
+        else:
+            new_id = self.word2id_id
+            self.id2words.append(string)
+            self.words2id[string] = new_id
+            self.word2id_id += 1
+            self.m_size = self.word2id_id
+        return new_id

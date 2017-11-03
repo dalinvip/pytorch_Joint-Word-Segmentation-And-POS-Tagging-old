@@ -83,8 +83,8 @@ class Iterators():
             for index in range(inst.gold_size):
                 gold = inst.gold[index]
                 goldID = operator.label_alphabet.loadWord2idAndId2Word(gold)
+                # print("gold ID ", goldID)
                 inst.gold_index.append(goldID)
-            # print(inst.gold_index)
 
     def create_onedata_Iterator(self, insts, operator):
         batch = []
@@ -184,6 +184,7 @@ class Iterators():
             # copy with the gold features
             for id_gold_index in range(max_gold_size):
                 if id_gold_index < inst.gold_size:
+                    # print("wwwwww", inst.gold_index[id_gold_index])
                     batch_gold_features.data[id_gold_index + id_inst * max_gold_size] = inst.gold_index[id_gold_index]
                 else:
                     batch_gold_features.data[id_gold_index + id_inst * max_gold_size] = 0

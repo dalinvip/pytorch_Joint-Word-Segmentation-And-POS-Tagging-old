@@ -19,7 +19,7 @@ class load_data():
 
     def __init__(self, path=[], shuffle=False):
         print("load data for train/dev/test")
-        self.debug_index = 10
+        self.debug_index = -1
         self.path = path
         self.date_list = []
         # self.shuffle = shuffle

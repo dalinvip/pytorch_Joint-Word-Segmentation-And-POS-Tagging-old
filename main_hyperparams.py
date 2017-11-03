@@ -81,22 +81,33 @@ parser.add_argument('-use_cuda', action='store_true', default=hyperparams.use_cu
 # option
 args = parser.parse_args()
 
-data_loader = load_data()
-train_data, dev_data, test_data = data_loader.load_data(path=[args.train_path, args.dev_path, args.test_path],
-                                                        shuffle=True)
-create_alphabet = Create_Alphabet(min_freq=1)
-create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
 
-create_iter = Iterators()
-train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=args.batch_size, data=[train_data, dev_data, test_data],
-                                                             operator=create_alphabet, args=args)
-# train_iter = create_iter.create_mul_iter(batch_size=args.batch_size, data=[train_data],
-#                                                               operator=create_alphabet)
-print(train_iter[0])
-# print()
-# print(create_alphabet.word_state)
-# print(create_alphabet.bichar_alphabet.words2id)
-# print(create_alphabet.bichar_alphabet.m_size)
+# load data / create alphabet / create iterator
+def dalaloader(args):
+    print("loading data......")
+    # read file
+    data_loader = load_data()
+    train_data, dev_data, test_data = data_loader.load_data(path=[args.train_path, args.dev_path, args.test_path],
+                                                            shuffle=args.shuffle)
+    # create the alphabet
+    create_alphabet = Create_Alphabet(min_freq=args.min_freq)
+    # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
+    create_alphabet.createAlphabet(train_data=train_data)
+    # create iterator
+    create_iter = Iterators()
+    train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=args.batch_size,
+                                                                 data=[train_data, dev_data, test_data],
+                                                                 operator=create_alphabet, args=args)
+    return train_iter, dev_iter, test_iter, create_alphabet
+
+
+train_iter, dev_iter, test_iter, create_alphabet = dalaloader(args)
+print(train_iter)
+print(dev_iter)
+print(test_iter)
+print(create_alphabet.char_alphabet.words2id)
+print(create_alphabet.bichar_alphabet.words2id)
+
 
 
 # update parameters
