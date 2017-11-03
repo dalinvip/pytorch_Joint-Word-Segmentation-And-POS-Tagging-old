@@ -23,6 +23,7 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.args = args
 
+        self.liner = nn.Linear(in_features=200, out_features=2)
     def forward(self, features):
         print("Decoder forward")
 

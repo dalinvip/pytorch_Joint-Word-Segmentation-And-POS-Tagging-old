@@ -8,6 +8,9 @@ from loaddata.Load_external_word_embedding import Word_Embedding
 from loaddata.Dataloader import load_data, instance
 from loaddata.Alphabet import Create_Alphabet, Alphabet
 from loaddata.Batch_Iterator import Iterators
+from models import encoder
+from models import decoder
+import train_seq2seq
 import train_ALL_LSTM
 import multiprocessing as mu
 import shutil
@@ -71,6 +74,9 @@ parser.add_argument('-word_Embedding_Path', type=str, default=hyperparams.word_E
 parser.add_argument('-rnn_hidden_dim', type=int, default=hyperparams.rnn_hidden_dim, help='the number of embedding dimension in LSTM hidden layer')
 parser.add_argument('-rnn_num_layers', type=int, default=hyperparams.rnn_num_layers, help='the number of embedding dimension in LSTM hidden layer')
 parser.add_argument('-min_freq', type=int, default=hyperparams.min_freq, help='min freq to include during built the vocab')
+# encoder model and decoder model
+parser.add_argument('-embed_char_dim', type=int, default=hyperparams.embed_char_dim, help='number of char embedding dimension [default: 200]')
+parser.add_argument('-embed_bichar_dim', type=int, default=hyperparams.embed_bichar_dim, help='number of bichar embedding dimension [default: 200]')
 # seed number
 parser.add_argument('-seed_num', type=float, default=hy.seed_num, help='value of init seed number')
 # nums of threads
@@ -101,17 +107,13 @@ def dalaloader(args):
     return train_iter, dev_iter, test_iter, create_alphabet
 
 
+# get iter
 train_iter, dev_iter, test_iter, create_alphabet = dalaloader(args)
-print(train_iter)
-print(dev_iter)
-print(test_iter)
-print(create_alphabet.char_alphabet.words2id)
-print(create_alphabet.bichar_alphabet.words2id)
-
-
 
 # update parameters
-args.cuda = (args.use_cuda) and torch.cuda.is_available(); del args.use_cuda
+args.use_cuda = (args.use_cuda) and torch.cuda.is_available()
+args.embed_char_num = create_alphabet.char_alphabet.m_size
+args.embed_bichar_num = create_alphabet.bichar_alphabet.m_size
 # save file
 mulu = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 args.mulu = mulu
@@ -132,3 +134,19 @@ for attr, value in sorted(args.__dict__.items()):
 file.close()
 shutil.copy("./Parameters.txt", "./snapshot/" + mulu + "/Parameters.txt")
 shutil.copy("./hyperparams.py", "./snapshot/" + mulu)
+
+
+# load model
+model_encoder = encoder.Encoder(args=args)
+model_decoder = decoder.Decoder(args=args)
+if args.use_cuda is True:
+    model_encoder = model_encoder.cuda()
+    model_decoder = model_decoder.cuda()
+
+# train
+print("\n CPU Count is {} and Current Process is {} \n".format(mu.cpu_count(), mu.current_process()))
+# set thread number
+torch.set_num_threads(args.num_threads)
+train_seq2seq.train(train_iter=train_iter, dev_iter=dev_iter, test_iter=test_iter, model_encoder=model_encoder,
+                    model_decoder=model_decoder, args=args)
+

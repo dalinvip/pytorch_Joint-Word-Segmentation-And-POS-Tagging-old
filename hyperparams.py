@@ -15,7 +15,7 @@ class Hyperparams():
         self.learning_rate = 0.001
         self.learning_rate_decay = 0.9   # value is 1 means not change lr
         # self.learning_rate_decay = 1   # value is 1 means not change lr
-        self.epochs = 150
+        self.epochs = 10
         self.batch_size = 16
         self.log_interval = 1
         self.test_interval = 100
@@ -42,6 +42,8 @@ class Hyperparams():
         self.word_Embedding = True
         self.fix_Embedding = False
         self.embed_dim = 300
+        self.embed_char_dim = 200
+        self.embed_bichar_dim = 200
         self.word_Embedding_Path = "./word2vec/glove.sentiment.conj.pretrained.txt"
         # word_Embedding_Path = "./word2vec/glove.840B.300d.handled.Twitter.txt"
 
