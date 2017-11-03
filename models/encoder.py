@@ -52,7 +52,7 @@ class Encoder(nn.Module):
                     Variable(torch.zeros(num_layers, batch_size, self.args.rnn_hidden_dim)))
 
     def forward(self, features):
-        print("Encoder forward")
+        # print("Encoder forward")
         batch_length = features.batch_length
         char_features_num = features.char_features.size(1)
         # fine tune
@@ -77,7 +77,6 @@ class Encoder(nn.Module):
         left_concat = torch.cat((char_features, static_char_features, bichar_left_features, static_bichar_l_features), 2)
         left_concat = left_concat.view(batch_length * char_features_num, self.input_dim)
         # print(left_concat.size())
-
         # right concat
         right_concat = torch.cat((char_features, static_char_features, bichar_right_features, static_bichar_r_features), 2)
         right_concat = right_concat.view(batch_length * char_features_num, self.input_dim)

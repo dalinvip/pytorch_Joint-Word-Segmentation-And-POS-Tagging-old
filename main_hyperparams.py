@@ -115,6 +115,8 @@ train_iter, dev_iter, test_iter, create_alphabet = dalaloader(args)
 args.use_cuda = (args.use_cuda) and torch.cuda.is_available()
 args.embed_char_num = create_alphabet.char_alphabet.m_size
 args.embed_bichar_num = create_alphabet.bichar_alphabet.m_size
+args.label_size = create_alphabet.label_alphabet.m_size
+# print(args.label_size)
 # save file
 mulu = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 args.mulu = mulu

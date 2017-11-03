@@ -23,11 +23,20 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.args = args
 
-        self.liner = nn.Linear(in_features=200, out_features=2)
+        self.linear = nn.Linear(in_features=self.args.hidden_size,
+                                out_features=self.args.label_size, bias=False)
+
+        self.non_linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2, out_features=self.args.hidden_size,
+                                    bias=True)
 
     def forward(self, features, encoder_out):
-        print("Decoder forward")
+        # print(encoder_out.size())
+        # print("Decoder forward")
 
-        return ""
+        non_linear = F.tanh(self.non_linear(encoder_out))
+        decoder_out = self.linear(non_linear)
+        decoder_out = decoder_out.view(features.batch_length * encoder_out.size(1), -1)
+
+        return decoder_out
 
 

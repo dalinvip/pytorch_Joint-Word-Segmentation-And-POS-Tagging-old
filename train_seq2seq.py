@@ -44,14 +44,17 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
 
         for batch_count, batch_features in enumerate(train_iter):
             print("batch_count", batch_count)
-            print(batch_features)
+            # print(batch_features)
 
             model_encoder.zero_grad()
             model_decoder.zero_grad()
 
             encoder_out = model_encoder(batch_features)
             decoder_out = model_decoder(batch_features, encoder_out)
-            print(decoder_out)
+            # print(decoder_out.size())
+
+            loss = F.cross_entropy(decoder_out, batch_features.gold_features)
+            print("loss {}".format(loss.data[0]))
 
 
 

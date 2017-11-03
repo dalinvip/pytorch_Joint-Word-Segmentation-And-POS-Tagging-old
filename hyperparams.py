@@ -4,18 +4,23 @@ torch.manual_seed(121)
 random.seed(121)
 # random seed
 seed_num = 233
+
+
 class Hyperparams():
     def __init__(self):
 
         # data path
-        self.train_path = "./pos_test_data/train.ctb60.pos.hwc"
-        self.dev_path = "./pos_test_data/dev.ctb60.pos.hwc"
-        self.test_path = "./pos_test_data/test.ctb60.pos.hwc"
+        # self.train_path = "./pos_test_data/train.ctb60.pos.hwc"
+        # self.dev_path = "./pos_test_data/dev.ctb60.pos.hwc"
+        # self.test_path = "./pos_test_data/test.ctb60.pos.hwc"
+        self.train_path = "./posdata/train.ctb60.pos.hwc"
+        self.dev_path = "./posdata/dev.ctb60.pos.hwc"
+        self.test_path = "./posdata/test.ctb60.pos.hwc"
 
         self.learning_rate = 0.001
         self.learning_rate_decay = 0.9   # value is 1 means not change lr
         # self.learning_rate_decay = 1   # value is 1 means not change lr
-        self.epochs = 1
+        self.epochs = 10
         self.batch_size = 16
         self.log_interval = 1
         self.test_interval = 100
