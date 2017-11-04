@@ -36,8 +36,9 @@ class Decoder(nn.Module):
         non_linear = F.tanh(self.non_linear(encoder_out))
         # non_linear = F.softmax(self.non_linear(encoder_out))
         decoder_out = self.linear(non_linear)
+        decoder_out_acc = decoder_out
         decoder_out = decoder_out.view(features.batch_length * encoder_out.size(1), -1)
 
-        return decoder_out
+        return decoder_out, decoder_out_acc
 
 

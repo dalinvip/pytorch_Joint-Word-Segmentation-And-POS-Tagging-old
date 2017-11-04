@@ -49,16 +49,18 @@ class Create_Alphabet():
         print("create Alphabet start...... ! ")
         # handle the data whether to fine_tune
         assert train_data is not None
-        print("the length of train data {}".format(len(train_data)))
+        datasets = []
+        datasets.extend(train_data)
+        print("the length of train data {}".format(len(datasets)))
         if dev_data is not None:
             print("the length of dev data {}".format(len(dev_data)))
-            train_data.extend(dev_data)
+            datasets.extend(dev_data)
         if test_data is not None:
             print("the length of test data {}".format(len(test_data)))
-            train_data.extend(test_data)
-        print("the length of data that create Alphabet {}".format(len(train_data)))
+            datasets.extend(test_data)
+        print("the length of data that create Alphabet {}".format(len(datasets)))
         # create the word Alphabet
-        for index, data in enumerate(train_data):
+        for index, data in enumerate(datasets):
             # word
             for word in data.words:
                 if word not in self.word_state:

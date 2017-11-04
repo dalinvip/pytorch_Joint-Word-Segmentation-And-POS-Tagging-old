@@ -3,7 +3,7 @@ import random
 torch.manual_seed(121)
 random.seed(121)
 # random seed
-seed_num = 233232
+seed_num = 233
 
 
 class Hyperparams():
@@ -20,7 +20,7 @@ class Hyperparams():
         self.learning_rate = 0.001
         self.learning_rate_decay = 0.9   # value is 1 means not change lr
         # self.learning_rate_decay = 1   # value is 1 means not change lr
-        self.epochs = 1
+        self.epochs = 1000
         self.batch_size = 16
         self.log_interval = 1
         self.test_interval = 100
@@ -28,8 +28,8 @@ class Hyperparams():
         self.save_dir = "snapshot"
         self.shuffle = True
         self.epochs_shuffle = True
-        self.dropout = 0.6
-        self.dropout_embed = 0.6
+        self.dropout = 0.25
+        self.dropout_embed = 0.25
         self.max_norm = None
         self.clip_max_norm = 5
         self.static = False

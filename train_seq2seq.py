@@ -48,22 +48,27 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
         # random.shuffle(test_iter)
 
         for batch_count, batch_features in enumerate(train_iter):
-            print("batch_count", batch_count)
+            # print("batch_count", batch_count)
             # print(batch_features)
             # print(batch_features.inst[batch_count].chars)
-            print(batch_features.batch_length)
+            # print(batch_features.batch_length)
             model_encoder.zero_grad()
             model_decoder.zero_grad()
 
             # print(batch_features.cuda())
             encoder_out = model_encoder(batch_features)
-            decoder_out = model_decoder(batch_features, encoder_out)
-            print(decoder_out.size())
-
+            decoder_out, decoder_out_acc = model_decoder(batch_features, encoder_out)
+            # print(decoder_out.size())
+            # cal the acc
+            train_acc, correct, total_num = cal_train_acc(batch_features, batch_count, decoder_out_acc, args)
             # loss = F.nll_loss(decoder_out, batch_features.gold_features)
             loss = F.cross_entropy(decoder_out, batch_features.gold_features)
-            print("loss {}".format(loss.data[0]))
-
+            # print("loss {}".format(loss.data[0]))
+            print("batch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%".format(batch_count+1,
+                                                                                                          loss.data[0],
+                                                                                                          correct,
+                                                                                                          total_num,
+                                                                                                          train_acc*100))
             loss.backward()
 
             optimizer_encoder.step()
@@ -72,11 +77,30 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
 
 
 
+def cal_train_acc(batch_features, batch_count, decode_out_acc, args):
+    # print("calculate the acc of train ......")
+    correct = 0
+    total_num = 0
+    for index in range(batch_features.batch_length):
+        inst = batch_features.inst[index]
+        for char_index in range(inst.chars_size):
+            max_index = getMaxindex(decode_out_acc[index][char_index], args)
+            if max_index == inst.gold_index[char_index]:
+                correct += 1
+        total_num += inst.chars_size
+    acc = correct / total_num
+    return acc, correct, total_num
 
 
-
-
-
+def getMaxindex(decode_out_acc, args):
+    # print("get max index ......")
+    max = decode_out_acc.data[0]
+    maxIndex = 0
+    for idx in range(1, args.label_size):
+        if decode_out_acc.data[idx] > max:
+            max = decode_out_acc.data[idx]
+            maxIndex = idx
+    return maxIndex
 
 
 
