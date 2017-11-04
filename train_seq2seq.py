@@ -50,7 +50,8 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
         for batch_count, batch_features in enumerate(train_iter):
             print("batch_count", batch_count)
             # print(batch_features)
-
+            # print(batch_features.inst[batch_count].chars)
+            print(batch_features.batch_length)
             model_encoder.zero_grad()
             model_decoder.zero_grad()
 

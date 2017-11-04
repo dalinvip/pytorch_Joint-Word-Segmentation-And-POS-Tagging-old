@@ -128,8 +128,10 @@ class Encoder(nn.Module):
         # init hidden cell
         self.hidden = self.init_hidden_cell(self.args.rnn_num_layers, batch_size=batch_length)
         # lstm
-        lstm_left_out, _ = self.lstm_left(left_concat, self.hidden)
-        lstm_right_out, _ = self.lstm_right(right_concat, self.hidden)
+        # lstm_left_out, _ = self.lstm_left(left_concat, self.hidden)
+        # lstm_right_out, _ = self.lstm_right(right_concat, self.hidden)
+        lstm_left_out, _ = self.lstm_left(left_concat)
+        lstm_right_out, _ = self.lstm_right(right_concat)
 
         # print("lstm_left {} lstm_right {}".format(lstm_left_out.size(), lstm_right_out.size()))
 

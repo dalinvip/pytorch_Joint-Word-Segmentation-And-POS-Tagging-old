@@ -3,7 +3,7 @@ import random
 torch.manual_seed(121)
 random.seed(121)
 # random seed
-seed_num = 233
+seed_num = 233232
 
 
 class Hyperparams():
