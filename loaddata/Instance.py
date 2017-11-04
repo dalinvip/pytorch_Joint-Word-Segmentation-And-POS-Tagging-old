@@ -54,3 +54,5 @@ class Batch_Features:
         self.bichar_left_features.cuda()
         self.bichar_right_features.cuda()
         self.gold_features.cuda()
+        # return self
+        # self.batch_length.cuda()

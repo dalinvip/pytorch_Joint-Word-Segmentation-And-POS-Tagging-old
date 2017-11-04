@@ -30,6 +30,8 @@ class Encoder(nn.Module):
         self.static_char_embed = nn.Embedding(self.args.embed_char_num, self.args.embed_char_dim)
         self.static_bichar_embed = nn.Embedding(self.args.embed_bichar_num, self.args.embed_bichar_dim)
 
+        # self.char_embed.cuda()
+        # self.bichar_embed.cuda()
         # load external word embedding
         if args.char_Embedding is True:
             pretrained_char_weight = np.array(args.pre_char_word_vecs)
@@ -81,9 +83,11 @@ class Encoder(nn.Module):
 
     def forward(self, features):
         # print("Encoder forward")
+        # batch_length = features.char_features.size(0)
         batch_length = features.batch_length
         char_features_num = features.char_features.size(1)
         # fine tune
+        print(features.char_features)
         char_features = self.char_embed(features.char_features)
         bichar_left_features = self.bichar_embed(features.bichar_left_features)
         bichar_right_features = self.bichar_embed(features.bichar_right_features)

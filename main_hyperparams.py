@@ -173,9 +173,11 @@ model_decoder = decoder.Decoder(args=args)
 print(model_encoder)
 print(model_decoder)
 if args.use_cuda is True:
+    print("using cuda......")
     model_encoder = model_encoder.cuda()
     model_decoder = model_decoder.cuda()
-
+    # model_encoder.cuda()
+    # model_decoder.cuda()
 # train
 print("\n CPU Count is {} and Current Process is {} \n".format(mu.cpu_count(), mu.current_process()))
 # set thread number

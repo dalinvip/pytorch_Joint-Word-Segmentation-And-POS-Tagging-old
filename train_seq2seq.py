@@ -17,9 +17,9 @@ random.seed(hy.seed_num)
 """
 
 def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
-    if args.use_cuda:
-        model_encoder = model_encoder.cuda()
-        model_decoder = model_decoder.cuda()
+    # if args.use_cuda:
+    #     model_encoder = model_encoder.cuda()
+    #     model_decoder = model_decoder.cuda()
 
     if args.Adam is True:
         print("Adam Training......")
@@ -44,8 +44,8 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
 
         # shuffle
         random.shuffle(train_iter)
-        random.shuffle(dev_iter)
-        random.shuffle(test_iter)
+        # random.shuffle(dev_iter)
+        # random.shuffle(test_iter)
 
         for batch_count, batch_features in enumerate(train_iter):
             print("batch_count", batch_count)
@@ -54,15 +54,16 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             model_encoder.zero_grad()
             model_decoder.zero_grad()
 
+            # print(batch_features.cuda())
             encoder_out = model_encoder(batch_features)
             decoder_out = model_decoder(batch_features, encoder_out)
-            # print(decoder_out.size())
+            print(decoder_out.size())
 
-            loss = F.nll_loss(decoder_out, batch_features.gold_features)
-            # loss = F.cross_entropy(decoder_out, batch_features.gold_features)
+            # loss = F.nll_loss(decoder_out, batch_features.gold_features)
+            loss = F.cross_entropy(decoder_out, batch_features.gold_features)
             print("loss {}".format(loss.data[0]))
 
-            loss.bachward()
+            loss.backward()
 
             optimizer_encoder.step()
             optimizer_decoder.step()
