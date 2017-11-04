@@ -200,6 +200,7 @@ class Iterators():
         # else:
         #     features.batch_length = batch_length
         features.batch_length = batch_length
+        features.inst = insts
         features.word_features = batch_word_features
         features.pos_features = batch_pos_features
         features.char_features = batch_char_features

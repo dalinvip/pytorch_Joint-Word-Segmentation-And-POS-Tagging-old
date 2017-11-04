@@ -105,34 +105,37 @@ def dalaloader(args):
     create_alphabet = Create_Alphabet(min_freq=args.min_freq)
     # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
     create_alphabet.createAlphabet(train_data=train_data)
+
+    create_static_alphabet = Create_Alphabet(min_freq=args.min_freq)
+    create_static_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
     # create iterator
     create_iter = Iterators()
     train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=args.batch_size,
                                                                  data=[train_data, dev_data, test_data],
                                                                  operator=create_alphabet, args=args)
-    return train_iter, dev_iter, test_iter, create_alphabet
+    return train_iter, dev_iter, test_iter, create_alphabet, create_static_alphabet
 
 
 # get iter
-train_iter, dev_iter, test_iter, create_alphabet = dalaloader(args)
+train_iter, dev_iter, test_iter, create_alphabet, create_static_alphabet = dalaloader(args)
 
 # print(create_alphabet.char_alphabet.id2words)
 
 if args.char_Embedding is True:
     print("loading char embedding.......")
-    char_word_vecs = Word_Embedding().load_my_vecs(path=args.char_Embedding_path, vocab=create_alphabet.char_alphabet.id2words,
+    char_word_vecs = Word_Embedding().load_my_vecs(path=args.char_Embedding_path, vocab=create_static_alphabet.char_alphabet.id2words,
                                             freqs=None, k=args.embed_char_dim)
-    char_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=char_word_vecs, vocab=create_alphabet.char_alphabet.id2words,
+    char_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=char_word_vecs, vocab=create_static_alphabet.char_alphabet.id2words,
                                                           k=args.embed_char_dim)
     # print(char_word_vecs)
 
 if args.bichar_Embedding is True:
     print("loading bichar embedding.......")
     bichar_word_vecs = Word_Embedding().load_my_vecs(path=args.bichar_Embedding_Path,
-                                                     vocab=create_alphabet.bichar_alphabet.id2words,
+                                                     vocab=create_static_alphabet.bichar_alphabet.id2words,
                                                      freqs=None, k=args.embed_bichar_dim)
     bichar_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=bichar_word_vecs,
-                                                                 vocab=create_alphabet.bichar_alphabet.id2words,
+                                                                 vocab=create_static_alphabet.bichar_alphabet.id2words,
                                                                  k=args.embed_bichar_dim)
     # print(bichar_word_vecs)
 
@@ -143,6 +146,8 @@ args.pre_bichar_word_vecs = bichar_word_vecs
 args.use_cuda = (args.use_cuda) and torch.cuda.is_available()
 args.embed_char_num = create_alphabet.char_alphabet.m_size
 args.embed_bichar_num = create_alphabet.bichar_alphabet.m_size
+args.static_embed_char_num = create_static_alphabet.char_alphabet.m_size
+args.static_embed_bichar_num = create_static_alphabet.bichar_alphabet.m_size
 args.label_size = create_alphabet.label_alphabet.m_size
 # print(args.label_size)
 # save file
@@ -159,8 +164,11 @@ if os.path.exists("./Parameters.txt"):
     os.remove("./Parameters.txt")
 file = open("Parameters.txt", "a")
 for attr, value in sorted(args.__dict__.items()):
-    if attr.upper() != "PRE_CHAR_WORD_VECS" and attr.upper() != "PRE_BICHAR_WORD_VECS":
-        print("\t{}={}".format(attr.upper(), value))
+    # if attr.upper() != "PRE_CHAR_WORD_VECS" and attr.upper() != "PRE_BICHAR_WORD_VECS":
+    #     print("\t{}={}".format(attr.upper(), value))
+    if attr.upper() == "PRE_CHAR_WORD_VECS" or attr.upper() == "PRE_BICHAR_WORD_VECS":
+        continue
+    print("\t{}={}".format(attr.upper(), value))
     file.write("\t{}={}\n".format(attr.upper(), value))
 file.close()
 shutil.copy("./Parameters.txt", "./snapshot/" + mulu + "/Parameters.txt")

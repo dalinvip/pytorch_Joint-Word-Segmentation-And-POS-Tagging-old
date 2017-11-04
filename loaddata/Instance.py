@@ -40,6 +40,7 @@ class instance():
 class Batch_Features:
     def __init__(self):
         self.batch_length = 0
+        self.inst = None
         self.word_features = None
         self.pos_features = None
         self.char_features = None

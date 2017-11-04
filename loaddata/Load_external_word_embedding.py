@@ -102,6 +102,7 @@ class Word_Embedding():
                 list_word2vec.append(word_vecs[word])
         print("oov count", oov)
         print("iov count", iov)
+        print("all words", oov + iov)
         return list_word2vec
 
     # load word embedding
