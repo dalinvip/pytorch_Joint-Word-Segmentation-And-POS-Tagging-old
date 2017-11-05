@@ -92,6 +92,8 @@ class Encoder(nn.Module):
         bichar_left_features = self.bichar_embed(features.bichar_left_features)
         bichar_right_features = self.bichar_embed(features.bichar_right_features)
 
+        # print(char_features.size())
+
         # fix the word embedding
         static_char_features = self.static_char_embed(features.char_features)
         static_bichar_l_features = self.static_bichar_embed(features.bichar_left_features)

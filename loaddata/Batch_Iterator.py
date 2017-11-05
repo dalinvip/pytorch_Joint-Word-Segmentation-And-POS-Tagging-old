@@ -210,8 +210,8 @@ class Iterators():
         if self.args.use_cuda is True:
             # batch_length = Variable(torch.LongTensor(1))
             # batch_length.data = features.batch_length
-            print("features cuda using......")
-            features.cuda()
+            # print("features cuda using......")
+            features.cuda(features)
         return features
 
     def padding(self, batch_length, insts, operator=None, batch_features=None, max_size=-1):

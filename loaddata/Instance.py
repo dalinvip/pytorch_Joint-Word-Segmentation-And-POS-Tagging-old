@@ -48,12 +48,19 @@ class Batch_Features:
         self.bichar_right_features = None
         self.gold_features = None
 
-    def cuda(self):
-        self.word_features.cuda()
-        self.pos_features.cuda()
-        self.char_features.cuda()
-        self.bichar_left_features.cuda()
-        self.bichar_right_features.cuda()
-        self.gold_features.cuda()
+    def cuda(self, features):
+        features.word_features = features.word_features.cuda()
+        features.pos_features = features.pos_features.cuda()
+        features.char_features = features.char_features.cuda()
+        features.bichar_left_features = features.bichar_left_features.cuda()
+        features.bichar_right_features = features.bichar_right_features.cuda()
+        features.gold_features = features.gold_features.cuda()
+        # return features
+        # self.word_features.cuda()
+        # self.pos_features.cuda()
+        # self.char_features.cuda()
+        # self.bichar_left_features.cuda()
+        # self.bichar_right_features.cuda()
+        # self.gold_features.cuda()
         # return self
         # self.batch_length.cuda()
