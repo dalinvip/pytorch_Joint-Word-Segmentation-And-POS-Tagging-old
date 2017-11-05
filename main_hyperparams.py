@@ -40,8 +40,8 @@ parser.add_argument('-learning_rate_decay', type=float, default=hyperparams.lear
 parser.add_argument('-epochs', type=int, default=hyperparams.epochs, help='number of epochs for train [default: 256]')
 parser.add_argument('-batch-size', type=int, default=hyperparams.batch_size, help='batch size for training [default: 64]')
 parser.add_argument('-log-interval',  type=int, default=hyperparams.log_interval,   help='how many steps to wait before logging training status [default: 1]')
-parser.add_argument('-test-interval', type=int, default=hyperparams.test_interval, help='how many steps to wait before testing [default: 100]')
-parser.add_argument('-save-interval', type=int, default=hyperparams.save_interval, help='how many steps to wait before saving [default:500]')
+parser.add_argument('-dev-interval', type=int, default=hyperparams.dev_interval, help='how many steps to wait before testing [default: 100]')
+parser.add_argument('-test-interval', type=int, default=hyperparams.test_interval, help='how many steps to wait before saving [default:500]')
 parser.add_argument('-save-dir', type=str, default=hyperparams.save_dir, help='where to save the snapshot')
 # data path
 parser.add_argument('-train_path', type=str, default=hyperparams.train_path, help='train data path')
@@ -149,6 +149,8 @@ args.embed_bichar_num = create_alphabet.bichar_alphabet.m_size
 args.static_embed_char_num = create_static_alphabet.char_alphabet.m_size
 args.static_embed_bichar_num = create_static_alphabet.bichar_alphabet.m_size
 args.label_size = create_alphabet.label_alphabet.m_size
+args.create_alphabet = create_alphabet
+args.create_static_alphabet = create_static_alphabet
 # print(args.label_size)
 # save file
 mulu = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')

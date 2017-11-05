@@ -121,10 +121,10 @@ class load_data():
 if __name__ == "__main__":
     print("Test dataloader........")
     loaddata = load_data()
-    # train_data, dev_data, test_data = loaddata.load_data(path=("../pos_test_data/train.ctb60.pos.hwc", "../pos_test_data/dev.ctb60.pos.hwc",
+    # train_data, dev_data, test_data = loaddata.load_data(path=("../pos_test_data/train.ctb60.pos-1.hwc", "../pos_test_data/dev.ctb60.pos.hwc",
     #                             "../pos_test_data/test.ctb60.pos.hwc"), shuffle=True)
-    train_data, dev_data, test_data = loaddata.load_data(path=["../pos_test_data/train.ctb60.pos.hwc", "../pos_test_data/train.ctb60.pos.hwc"
-        , "../pos_test_data/train.ctb60.pos.hwc"], shuffle=True)
+    train_data, dev_data, test_data = loaddata.load_data(path=["../pos_test_data/train.ctb60.pos-1.hwc", "../pos_test_data/train.ctb60.pos-1.hwc"
+        , "../pos_test_data/train.ctb60.pos-1.hwc"], shuffle=True)
     # print("\n\n\n\n")
     # print(train_data)
     # print("\n\n\n\n")

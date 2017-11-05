@@ -64,11 +64,13 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             # loss = F.nll_loss(decoder_out, batch_features.gold_features)
             loss = F.cross_entropy(decoder_out, batch_features.gold_features)
             # print("loss {}".format(loss.data[0]))
-            print("batch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%".format(batch_count+1,
-                                                                                                          loss.data[0],
-                                                                                                          correct,
-                                                                                                          total_num,
-                                                                                                          train_acc*100))
+
+            steps += 1
+            if steps % args.log_interval == 0:
+                print("batch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%".format(
+                    batch_count+1, loss.data[0], correct, total_num, train_acc*100))
+            if steps % args.dev_interval == 0:
+                eval(dev_iter, model_encoder, model_decoder, args)
             loss.backward()
 
             optimizer_encoder.step()
@@ -92,6 +94,21 @@ def cal_train_acc(batch_features, batch_count, decode_out_acc, args):
     return acc, correct, total_num
 
 
+def cal_pre_fscore(batch_features, decode_out_acc, args):
+    # print("calculate the acc of train ......")
+    correct_num = 0
+    predict_num = 0
+    gold_num = 0
+    for index in range(batch_features.batch_length):
+        inst = batch_features.inst[index]
+        for char_index in range(inst.chars_size):
+            max_index = getMaxindex(decode_out_acc[index][char_index], args)
+            if max_index == inst.gold_index[char_index]:
+                correct_num += 1
+        gold_num += inst.chars_size
+
+    # return ""
+
 def getMaxindex(decode_out_acc, args):
     # print("get max index ......")
     max = decode_out_acc.data[0]
@@ -103,138 +120,17 @@ def getMaxindex(decode_out_acc, args):
     return maxIndex
 
 
+def eval(data_iter, model_encoder, model_decoder, args):
+    print("eval function")
+    model_encoder.eval()
+    model_decoder.eval()
+    loss = 0
+    for batch_count, batch_features in enumerate(data_iter):
+        encoder_out = model_encoder(batch_features)
+        decoder_out, decoder_out_acc = model_decoder(batch_features, encoder_out)
+        loss = F.cross_entropy(decoder_out, batch_features.gold_features, size_average=False)
+        print(loss.data[0])
+        cal_pre_fscore(batch_features, decoder_out_acc, args)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def eval(data_iter, model, args, scheduler):
-    model.eval()
-    corrects, avg_loss = 0, 0
-    for batch in data_iter:
-        feature, target = batch.text, batch.label
-        target.data.sub_(1)
-        # feature, target = batch.text, batch.label.data.sub_(1)
-        if args.cuda is True:
-            feature, target = feature.cuda(), target.cuda()
-        # feature.data.t_(), target.data.sub_(1)  # batch first, index align
-        # feature.data.t_(),\
-        # target.data.sub_(1)  # batch first, index align
-        # target = autograd.Variable(target)
-
-        model.hidden = model.init_hidden(args.lstm_num_layers, args.batch_size)
-        if feature.size(1) != args.batch_size:
-            # print("aaa")
-            # continue
-            model.hidden = model.init_hidden(args.lstm_num_layers, feature.size(1))
-        logit = model(feature)
-        loss = F.cross_entropy(logit, target, size_average=False)
-        # scheduler.step(loss.data[0])
-
-        avg_loss += loss.data[0]
-        corrects += (torch.max(logit, 1)[1].view(target.size()).data == target.data).sum()
-
-    size = len(data_iter.dataset)
-    avg_loss = loss.data[0]/size
-    accuracy = float(corrects)/size * 100.0
-    model.train()
-    print('\nEvaluation - loss: {:.6f}  acc: {:.4f}%({}/{}) \n'.format(avg_loss,
-                                                                       accuracy,
-                                                                       corrects,
-                                                                       size))
-
-
-def test_eval(data_iter, model, save_path, args, model_count):
-    # print(save_path)
-    model.eval()
-    corrects, avg_loss = 0, 0
-    for batch in data_iter:
-        feature, target = batch.text, batch.label
-        target.data.sub_(1)
-        if args.cuda:
-            feature, target = feature.cuda(), target.cuda()
-        # feature.data.t_()
-        # target.data.sub_(1)  # batch first, index align
-        # target = autograd.Variable(target)
-        if args.cuda:
-            feature, target = feature.cuda(), target.cuda()
-
-        model.hidden = model.init_hidden(args.lstm_num_layers, args.batch_size)
-        if feature.size(1) != args.batch_size:
-            # continue
-            model.hidden = model.init_hidden(args.lstm_num_layers, feature.size(1))
-        logit = model(feature)
-        loss = F.cross_entropy(logit, target, size_average=False)
-
-        avg_loss += loss.data[0]
-        corrects += (torch.max(logit, 1)
-                     [1].view(target.size()).data == target.data).sum()
-
-    size = len(data_iter.dataset)
-    avg_loss = loss.data[0]/size
-    accuracy = float(corrects)/size * 100.0
-    model.train()
-    print('\nEvaluation - loss: {:.6f}  acc: {:.4f}%({}/{}) \n'.format(avg_loss,
-                                                                       accuracy,
-                                                                       corrects,
-                                                                       size))
-    print("model_count {}".format(model_count))
-    # test result
-    if os.path.exists("./Test_Result.txt"):
-        file = open("./Test_Result.txt", "a")
-    else:
-        file = open("./Test_Result.txt", "w")
-    file.write("model " + save_path + "\n")
-    file.write("Evaluation - loss: {:.6f}  acc: {:.4f}%({}/{}) \n".format(avg_loss, accuracy, corrects, size))
-    file.write("model_count {} \n".format(model_count))
-    file.write("\n")
-    file.close()
-    # calculate the best score in current file
-    resultlist = []
-    if os.path.exists("./Test_Result.txt"):
-        file = open("./Test_Result.txt")
-        for line in file.readlines():
-            if line[:10] == "Evaluation":
-                resultlist.append(float(line[34:41]))
-        result = sorted(resultlist)
-        file.close()
-        file = open("./Test_Result.txt", "a")
-        file.write("\nThe Current Best Result is : " + str(result[len(result) - 1]))
-        file.write("\n\n")
-        file.close()
-    shutil.copy("./Test_Result.txt", "./snapshot/" + args.mulu + "/Test_Result.txt")
-    # whether to delete the model after test acc so that to save space
-    if os.path.isfile(save_path) and args.rm_model is True:
-        os.remove(save_path)
