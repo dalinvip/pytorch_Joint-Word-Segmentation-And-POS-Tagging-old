@@ -10,8 +10,8 @@ class Hyperparams():
     def __init__(self):
 
         # data path
-        # self.train_path = "./pos_test_data/train.ctb60.pos.hwc-1"
-        self.train_path = "./pos_test_data/train.ctb60.pos.hwc"
+        self.train_path = "./pos_test_data/train.ctb60.pos-1.hwc"
+        # self.train_path = "./pos_test_data/train.ctb60.pos.hwc"
         self.dev_path = "./pos_test_data/dev.ctb60.pos.hwc"
         self.test_path = "./pos_test_data/test.ctb60.pos.hwc"
         # self.train_path = "./posdata/train.ctb60.pos-1.hwc"

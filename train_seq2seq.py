@@ -67,18 +67,27 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             loss = F.cross_entropy(decoder_out, batch_features.gold_features)
             # print("loss {}".format(loss.data[0]))
 
+            loss.backward()
+
+            optimizer_encoder.step()
+            optimizer_decoder.step()
+
             steps += 1
             if steps % args.log_interval == 0:
                 print("batch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%".format(
                     batch_count+1, loss.data[0], correct, total_num, train_acc*100))
             if steps % args.dev_interval == 0:
+                print("dev F-score")
                 eval(dev_iter, model_encoder, model_decoder, args)
-            model_encoder.train()
-            model_decoder.train()
-            loss.backward()
+                model_encoder.train()
+                model_decoder.train()
+            if steps % args.test_interval == 0:
+                print("test F-score")
+                eval(test_iter, model_encoder, model_decoder, args)
+                model_encoder.train()
+                model_decoder.train()
 
-            optimizer_encoder.step()
-            optimizer_decoder.step()
+
 
 
 
@@ -177,7 +186,7 @@ def getMaxindex(decode_out_acc, args):
 
 
 def eval(data_iter, model_encoder, model_decoder, args):
-    print("eval function")
+    # print("eval function")
     model_encoder.eval()
     model_decoder.eval()
     loss = 0
