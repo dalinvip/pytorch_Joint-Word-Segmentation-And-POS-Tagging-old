@@ -3,7 +3,7 @@ import random
 torch.manual_seed(121)
 random.seed(121)
 # random seed
-seed_num = 2333434
+seed_num = 23334
 
 
 class Hyperparams():
@@ -21,7 +21,7 @@ class Hyperparams():
         self.learning_rate = 0.001
         self.learning_rate_decay = 0.9   # value is 1 means not change lr
         # self.learning_rate_decay = 1   # value is 1 means not change lr
-        self.epochs = 10
+        self.epochs = 200
         self.batch_size = 16
         self.log_interval = 1
         self.dev_interval = 1

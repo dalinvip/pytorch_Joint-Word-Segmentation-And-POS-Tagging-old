@@ -175,3 +175,9 @@ class Alphabet():
             self.word2id_id += 1
             self.m_size = self.word2id_id
         return new_id
+
+    def from_id(self, qid, defineStr = ''):
+        if int(qid) < 0 or self.m_size <= qid:
+            return defineStr
+        else:
+            return self.id2words[qid]

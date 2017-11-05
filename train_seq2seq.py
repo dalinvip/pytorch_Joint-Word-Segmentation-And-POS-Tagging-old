@@ -8,6 +8,8 @@ import torch.optim.lr_scheduler as lr_scheduler
 import shutil
 import random
 import hyperparams as hy
+from eval import Eval
+from loaddata.common import sep, app, paddingkey, unkkey, nullkey
 import time
 torch.manual_seed(hy.seed_num)
 random.seed(hy.seed_num)
@@ -71,6 +73,8 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
                     batch_count+1, loss.data[0], correct, total_num, train_acc*100))
             if steps % args.dev_interval == 0:
                 eval(dev_iter, model_encoder, model_decoder, args)
+            model_encoder.train()
+            model_decoder.train()
             loss.backward()
 
             optimizer_encoder.step()
@@ -94,20 +98,72 @@ def cal_train_acc(batch_features, batch_count, decode_out_acc, args):
     return acc, correct, total_num
 
 
-def cal_pre_fscore(batch_features, decode_out_acc, args):
+def cal_pre_fscore(batch_features, decode_out_acc, args, eval_seg, eval_pos):
     # print("calculate the acc of train ......")
-    correct_num = 0
-    predict_num = 0
-    gold_num = 0
+    correct = 0
+    predict = 0
+    gold = 0
     for index in range(batch_features.batch_length):
         inst = batch_features.inst[index]
+        label_list = []
+        eval = Eval()
         for char_index in range(inst.chars_size):
             max_index = getMaxindex(decode_out_acc[index][char_index], args)
-            if max_index == inst.gold_index[char_index]:
-                correct_num += 1
-        gold_num += inst.chars_size
+            label = args.create_alphabet.label_alphabet.from_id(max_index)
+            label_list.append(label)
+        # print(label_list)
+        jointPRF(label_list, inst, eval_seg, eval_pos)
+
+            # print(label)
+
 
     # return ""
+
+
+def jointPRF(label_list, inst, seg_eval, pos_eval):
+    # words = state.words
+    # posLabels = state.pos_labels
+    count = 0
+    predict_seg = []
+    predict_pos = []
+    sep_list = []
+    pos_list = []
+    for index, value in enumerate(label_list):
+        label_sep, _, label_pos = value.partition("#")
+        sep_list.append(label_sep)
+        pos_list.append(label_pos)
+
+    word_list = {}
+    word_number = 0
+    # print(sep_list)
+    for value in sep_list:
+        if value == sep or sep_list[0] == app:
+            word_number += 1
+            word_list[word_number] = 1
+        else:
+            # print(word_number)
+            word_list[word_number] += 1
+    # print(word_list)
+
+    count = 0
+    for index in word_list:
+        predict_seg.append('[' + str(count) + ',' + str(count + word_list[index]) + ']')
+        predict_pos.append('[' + str(count) + ',' + str(count + word_list[index]) + ']' + pos_list[count])
+        count += word_list[index]
+    # print(predict_pos)
+    # print(predict_seg)
+
+    seg_eval.gold_num += len(inst.gold_seg)
+    seg_eval.predict_num += len(predict_seg)
+    for p in predict_seg:
+        if p in inst.gold_seg:
+            seg_eval.correct_num += 1
+
+    pos_eval.gold_num += len(inst.gold_pos)
+    pos_eval.predict_num += len(predict_pos)
+    for p in predict_pos:
+        if p in inst.gold_pos:
+            pos_eval.correct_num += 1
 
 def getMaxindex(decode_out_acc, args):
     # print("get max index ......")
@@ -125,12 +181,19 @@ def eval(data_iter, model_encoder, model_decoder, args):
     model_encoder.eval()
     model_decoder.eval()
     loss = 0
+    eval_seg = Eval()
+    eval_pos = Eval()
     for batch_count, batch_features in enumerate(data_iter):
         encoder_out = model_encoder(batch_features)
         decoder_out, decoder_out_acc = model_decoder(batch_features, encoder_out)
         loss = F.cross_entropy(decoder_out, batch_features.gold_features, size_average=False)
-        print(loss.data[0])
-        cal_pre_fscore(batch_features, decoder_out_acc, args)
+        # print(loss.data[0])
+        cal_pre_fscore(batch_features, decoder_out_acc, args, eval_seg, eval_pos)
+
+    p, r, f = eval_seg.getFscore()
+    print("seg dev: precision = {}%  recall = {}% , f-score = {}%".format(p, r, f))
+    p, r, f = eval_pos.getFscore()
+    print("pos dev: precision = {}%  recall = {}% , f-score = {}%".format(p, r, f))
 
 
 
