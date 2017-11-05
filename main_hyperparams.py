@@ -140,9 +140,21 @@ if args.bichar_Embedding is True:
     # print(bichar_word_vecs)
 
 
+# handle external word embedding to file for convenience
+from loaddata.handle_wordEmbedding2File import WordEmbedding2File
+wordembedding = WordEmbedding2File(wordEmbedding_path=args.bichar_Embedding_Path,
+                                   vocab=create_static_alphabet.bichar_alphabet.id2words, k_dim=200)
+wordembedding.handle()
+
+
+
+
+
 # update parameters
-args.pre_char_word_vecs = char_word_vecs
-args.pre_bichar_word_vecs = bichar_word_vecs
+if args.char_Embedding is True:
+    args.pre_char_word_vecs = char_word_vecs
+if args.bichar_Embedding is True:
+    args.pre_bichar_word_vecs = bichar_word_vecs
 args.use_cuda = (args.use_cuda) and torch.cuda.is_available()
 args.embed_char_num = create_alphabet.char_alphabet.m_size
 args.embed_bichar_num = create_alphabet.bichar_alphabet.m_size

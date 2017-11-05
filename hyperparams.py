@@ -54,7 +54,7 @@ class Hyperparams():
         # word_Embedding_Path = "./word2vec/glove.840B.300d.handled.Twitter.txt"
         self.char_Embedding = True
         self.char_Embedding_path = "./word_embedding/char.vec"
-        self.bichar_Embedding = True
+        self.bichar_Embedding = False
         self.bichar_Embedding_Path = "./word_embedding/bichar.vec"
 
         self.rnn_hidden_dim = 200
