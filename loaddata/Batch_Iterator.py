@@ -34,6 +34,7 @@ class Iterators():
             self.data_iter.append(self.features)
             self.features = []
         return self.data_iter[0], self.data_iter[1], self.data_iter[2]
+        # return self.data_iter[0]
 
     def convert_word2id(self, insts, operator):
         # print(len(insts))
@@ -42,13 +43,15 @@ class Iterators():
             for index in range(inst.words_size):
                 word = inst.words[index]
                 wordID = operator.word_alphabet.loadWord2idAndId2Word(word)
-                if wordID is None:
+                # if wordID is None:
+                if wordID == -1:
                     wordID = operator.word_UnkkID
                 inst.words_index.append(wordID)
 
                 pos = inst.pos[index]
                 posID = operator.pos_alphabet.loadWord2idAndId2Word(pos)
-                if posID is None:
+                # if posID is None:
+                if posID == -1:
                     posID = operator.pos_UnkID
                 inst.pos_index.append(posID)
             # print(inst.words_index)
@@ -57,7 +60,8 @@ class Iterators():
             for index in range(inst.chars_size):
                 char = inst.chars[index]
                 charID = operator.char_alphabet.loadWord2idAndId2Word(char)
-                if charID is None:
+                # if charID is None:
+                if charID == -1:
                     charID = operator.char_UnkID
                 inst.chars_index.append(charID)
             # print(inst.chars_index)
@@ -65,7 +69,8 @@ class Iterators():
             for index in range(inst.bichars_size):
                 bichar_left = inst.bichars_left[index]
                 bichar_left_ID = operator.bichar_alphabet.loadWord2idAndId2Word(bichar_left)
-                if bichar_left_ID is None:
+                # if bichar_left_ID is None:
+                if bichar_left_ID == -1:
                     bichar_left_ID = operator.bichar_UnkID
                 inst.bichars_left_index.append(bichar_left_ID)
             # print(inst.bichars_left_index)
@@ -74,7 +79,9 @@ class Iterators():
             for index in range(inst.bichars_size):
                 bichar_right = inst.bichars_right[index]
                 bichar_right_ID = operator.bichar_alphabet.loadWord2idAndId2Word(bichar_right)
-                if bichar_right_ID is None:
+                # if bichar_right_ID == -1:
+                # if bichar_right_ID is None:
+                if bichar_right_ID == -1:
                     bichar_right_ID = operator.bichar_UnkID
                 inst.bichars_right_index.append(bichar_right_ID)
             # print(inst.bichars_right_index)

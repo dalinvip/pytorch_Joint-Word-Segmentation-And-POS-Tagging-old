@@ -131,6 +131,12 @@ class Create_Alphabet():
         self.bichar_PaddingID = self.bichar_alphabet.loadWord2idAndId2Word(paddingkey)
         self.pos_PaddingID = self.pos_alphabet.loadWord2idAndId2Word(paddingkey)
 
+        self.word_alphabet.set_fixed_flag(True)
+        self.char_alphabet.set_fixed_flag(True)
+        self.bichar_alphabet.set_fixed_flag(True)
+        self.pos_alphabet.set_fixed_flag(True)
+        self.label_alphabet.set_fixed_flag(True)
+
         # copy the app seq ID
         self.appID = self.label_alphabet.loadWord2idAndId2Word(app)
         self.sepID =self.label_alphabet.loadWord2idAndId2Word(sep)
@@ -150,6 +156,8 @@ class Alphabet():
         self.word2id_id = 0
         self.m_size = 0
         self.min_freq = min_freq
+        self.max_cap = 1e8
+        self.m_b_fixed = False
 
     def initialWord2idAndId2Word(self, data):
         for key in data:
@@ -165,16 +173,26 @@ class Alphabet():
     #     self.word2id_id += 1
     #     self.m_size = self.word2id_id
 
+    def set_fixed_flag(self, bfixed):
+        self.m_b_fixed = bfixed
+        if (not self.m_b_fixed) and (self.m_size >= self.max_cap):
+            self.m_b_fixed = True
+
     def loadWord2idAndId2Word(self, string):
         if string in self.words2id:
             return self.words2id[string]
         else:
-            new_id = self.word2id_id
-            self.id2words.append(string)
-            self.words2id[string] = new_id
-            self.word2id_id += 1
-            self.m_size = self.word2id_id
-        return new_id
+            if not self.m_b_fixed:
+                new_id = self.word2id_id
+                self.id2words.append(string)
+                self.words2id[string] = new_id
+                self.word2id_id += 1
+                self.m_size = self.word2id_id
+                if self.m_size >= self.max_cap:
+                    self.m_b_fixed = True
+                return new_id
+            else:
+                return -1
 
     def from_id(self, qid, defineStr = ''):
         if int(qid) < 0 or self.m_size <= qid:

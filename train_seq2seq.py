@@ -213,7 +213,7 @@ def eval(data_iter, model_encoder, model_decoder, args, eval_seg, eval_pos):
     for batch_count, batch_features in enumerate(data_iter):
         encoder_out = model_encoder(batch_features)
         decoder_out, decoder_out_acc = model_decoder(batch_features, encoder_out)
-        loss = F.cross_entropy(decoder_out, batch_features.gold_features, size_average=False)
+        # loss = F.cross_entropy(decoder_out, batch_features.gold_features, size_average=False)
         # print(loss.data[0])
         cal_pre_fscore(batch_features, decoder_out_acc, args, eval_seg, eval_pos)
 

@@ -55,6 +55,7 @@ class load_data():
         assert isinstance(path, list), "path must be in list"
         for id_data in range(len(path)):
             print(path[id_data])
+            # insts = None
             insts = self.load_one_date(path=path[id_data], shuffle=shuffle)
             self.date_list.append(insts)
         return self.date_list[0], self.date_list[1], self.date_list[2]

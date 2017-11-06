@@ -84,10 +84,11 @@ import numpy as np
 # print(c)
 # print(c[0])
 
-a = np.random.rand(240000,5)
+# a = np.random.rand(240000,5)
+# print(a)
+
+a = np.sqrt(0)
 print(a)
-
-
 
 
 

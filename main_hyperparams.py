@@ -106,13 +106,20 @@ def dalaloader(args):
     # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
     create_alphabet.createAlphabet(train_data=train_data)
 
+    # create_alphabet_iter = create_alphabet
+    create_alphabet_iter = Create_Alphabet(min_freq=args.min_freq)
+    # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
+    create_alphabet_iter.createAlphabet(train_data=train_data)
+
     create_static_alphabet = Create_Alphabet(min_freq=args.min_freq)
     create_static_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
     # create iterator
     create_iter = Iterators()
     train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=args.batch_size,
                                                                  data=[train_data, dev_data, test_data],
-                                                                 operator=create_static_alphabet, args=args)
+                                                                 # operator=create_static_alphabet, args=args)
+                                                                 operator=create_alphabet, args=args)
+                                                                 # operator=create_alphabet_iter, args=args)
     return train_iter, dev_iter, test_iter, create_alphabet, create_static_alphabet
 
 
