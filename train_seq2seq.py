@@ -73,6 +73,10 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
 
             loss.backward()
 
+            if args.init_clip_max_norm is not None:
+                utils.clip_grad_norm(model_encoder.parameters(), max_norm=args.init_clip_max_norm)
+                utils.clip_grad_norm(model_decoder.parameters(), max_norm=args.init_clip_max_norm)
+
             optimizer_encoder.step()
             optimizer_decoder.step()
 

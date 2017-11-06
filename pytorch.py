@@ -87,10 +87,21 @@ import numpy as np
 # a = np.random.rand(240000,5)
 # print(a)
 
-a = np.sqrt(0)
+# a = np.sqrt(0)
+# print(a)
+
+a = torch.rand(3, 4, 5)
 print(a)
-
-
+print(a.reverse())
+print(a[0][0])
+list = (a[0][0]).tolist()
+b = list.reverse()
+print(list)
+print(list.reverse())
+# b = reversed(list)
+# print(b)
+# b = torch.inverse(a)
+# print(b)
 
 
 

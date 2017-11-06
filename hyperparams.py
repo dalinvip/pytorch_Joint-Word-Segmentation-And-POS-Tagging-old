@@ -22,17 +22,17 @@ class Hyperparams():
         self.learning_rate_decay = 0.9   # value is 1 means not change lr
         # self.learning_rate_decay = 1   # value is 1 means not change lr
         self.epochs = 200
-        self.batch_size = 16
+        self.batch_size = 2
         self.log_interval = 1
-        self.dev_interval = 1
-        self.test_interval = 1
+        self.dev_interval = 50
+        self.test_interval = 50
         self.save_dir = "snapshot"
         self.shuffle = True
         self.epochs_shuffle = True
         self.dropout = 0.25
         self.dropout_embed = 0.25
         self.max_norm = None
-        self.clip_max_norm = 5
+        self.clip_max_norm = 10
         self.static = False
         # model
         self.LSTM = False
@@ -56,6 +56,7 @@ class Hyperparams():
         self.char_Embedding_path = "./word_embedding/char.vec"
         self.bichar_Embedding = True
         self.bichar_Embedding_Path = "./word_embedding/bichar.vec"
+        # self.bichar_Embedding_Path = "./word_embedding/convert_bichar.txt"
 
         self.rnn_hidden_dim = 200
         self.hidden_size = 200
