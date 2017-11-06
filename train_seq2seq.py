@@ -39,6 +39,10 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
     model_encoder.train()
     model_decoder.train()
     time_list = []
+    dev_eval_seg = Eval()
+    dev_eval_pos = Eval()
+    test_eval_seg = Eval()
+    test_eval_pos = Eval()
     for epoch in range(1, args.epochs+1):
         print("\n## 第{} 轮迭代，共计迭代 {} 次 ！##\n".format(epoch, args.epochs))
         print("optimizer_encoder now lr is {}".format(optimizer_encoder.param_groups[0].get("lr")))
@@ -78,12 +82,17 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
                     batch_count+1, loss.data[0], correct, total_num, train_acc*100))
             if steps % args.dev_interval == 0:
                 print("dev F-score")
-                eval(dev_iter, model_encoder, model_decoder, args)
+                dev_eval_pos.clear()
+                dev_eval_seg.clear()
+                eval(dev_iter, model_encoder, model_decoder, args, dev_eval_seg, dev_eval_pos)
                 model_encoder.train()
                 model_decoder.train()
             if steps % args.test_interval == 0:
                 print("test F-score")
-                eval(test_iter, model_encoder, model_decoder, args)
+                test_eval_pos.clear()
+                test_eval_seg.clear()
+                eval(test_iter, model_encoder, model_decoder, args, test_eval_seg, test_eval_pos)
+                print("\n")
                 model_encoder.train()
                 model_decoder.train()
 
@@ -115,18 +124,12 @@ def cal_pre_fscore(batch_features, decode_out_acc, args, eval_seg, eval_pos):
     for index in range(batch_features.batch_length):
         inst = batch_features.inst[index]
         label_list = []
-        eval = Eval()
         for char_index in range(inst.chars_size):
             max_index = getMaxindex(decode_out_acc[index][char_index], args)
             label = args.create_alphabet.label_alphabet.from_id(max_index)
             label_list.append(label)
         # print(label_list)
         jointPRF(label_list, inst, eval_seg, eval_pos)
-
-            # print(label)
-
-
-    # return ""
 
 
 def jointPRF(label_list, inst, seg_eval, pos_eval):
@@ -137,6 +140,7 @@ def jointPRF(label_list, inst, seg_eval, pos_eval):
     predict_pos = []
     sep_list = []
     pos_list = []
+    # print(label_list)
     for index, value in enumerate(label_list):
         label_sep, _, label_pos = value.partition("#")
         sep_list.append(label_sep)
@@ -145,13 +149,26 @@ def jointPRF(label_list, inst, seg_eval, pos_eval):
     word_list = {}
     word_number = 0
     # print(sep_list)
-    for value in sep_list:
-        if value == sep or sep_list[0] == app:
-            word_number += 1
-            word_list[word_number] = 1
-        else:
-            # print(word_number)
-            word_list[word_number] += 1
+    for index, value in enumerate(sep_list):
+        if sep_list[0] == sep:
+            if value == sep or sep_list[0] == app:
+                word_number += 1
+                word_list[word_number] = 1
+            else:
+                # print(word_number)
+                word_list[word_number] += 1
+        if sep_list[0] == app:
+            if value == app and index == 0:
+                word_number = 1
+                word_list[word_number] = 1
+            else:
+                if value == app or sep_list[0] == sep:
+                    word_list[word_number] += 1
+                else:
+                    word_number += 1
+                    word_list[word_number] = 1
+                # print(word_number)
+
     # print(word_list)
 
     count = 0
@@ -161,6 +178,7 @@ def jointPRF(label_list, inst, seg_eval, pos_eval):
         count += word_list[index]
     # print(predict_pos)
     # print(predict_seg)
+    # print("\n\n\n ****************")
 
     seg_eval.gold_num += len(inst.gold_seg)
     seg_eval.predict_num += len(predict_seg)
@@ -185,13 +203,13 @@ def getMaxindex(decode_out_acc, args):
     return maxIndex
 
 
-def eval(data_iter, model_encoder, model_decoder, args):
+def eval(data_iter, model_encoder, model_decoder, args, eval_seg, eval_pos):
     # print("eval function")
     model_encoder.eval()
     model_decoder.eval()
     loss = 0
-    eval_seg = Eval()
-    eval_pos = Eval()
+    # eval_seg = Eval()
+    # eval_pos = Eval()
     for batch_count, batch_features in enumerate(data_iter):
         encoder_out = model_encoder(batch_features)
         decoder_out, decoder_out_acc = model_decoder(batch_features, encoder_out)
@@ -200,9 +218,11 @@ def eval(data_iter, model_encoder, model_decoder, args):
         cal_pre_fscore(batch_features, decoder_out_acc, args, eval_seg, eval_pos)
 
     p, r, f = eval_seg.getFscore()
+    # print("\n")
     print("seg dev: precision = {}%  recall = {}% , f-score = {}%".format(p, r, f))
     p, r, f = eval_pos.getFscore()
     print("pos dev: precision = {}%  recall = {}% , f-score = {}%".format(p, r, f))
+    # print("\n")
 
 
 

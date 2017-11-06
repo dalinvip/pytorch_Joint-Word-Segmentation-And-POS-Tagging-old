@@ -112,7 +112,7 @@ def dalaloader(args):
     create_iter = Iterators()
     train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=args.batch_size,
                                                                  data=[train_data, dev_data, test_data],
-                                                                 operator=create_alphabet, args=args)
+                                                                 operator=create_static_alphabet, args=args)
     return train_iter, dev_iter, test_iter, create_alphabet, create_static_alphabet
 
 
@@ -125,6 +125,7 @@ if args.char_Embedding is True:
     print("loading char embedding.......")
     char_word_vecs = Word_Embedding().load_my_vecs(path=args.char_Embedding_path, vocab=create_static_alphabet.char_alphabet.id2words,
                                             freqs=None, k=args.embed_char_dim)
+    print("avg handle tha oov words")
     char_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=char_word_vecs, vocab=create_static_alphabet.char_alphabet.id2words,
                                                           k=args.embed_char_dim)
     # print(char_word_vecs)
@@ -134,17 +135,18 @@ if args.bichar_Embedding is True:
     bichar_word_vecs = Word_Embedding().load_my_vecs(path=args.bichar_Embedding_Path,
                                                      vocab=create_static_alphabet.bichar_alphabet.id2words,
                                                      freqs=None, k=args.embed_bichar_dim)
+    print("avg handle tha oov words")
     bichar_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=bichar_word_vecs,
                                                                  vocab=create_static_alphabet.bichar_alphabet.id2words,
                                                                  k=args.embed_bichar_dim)
     # print(bichar_word_vecs)
 
 
-# handle external word embedding to file for convenience
-from loaddata.handle_wordEmbedding2File import WordEmbedding2File
-wordembedding = WordEmbedding2File(wordEmbedding_path=args.bichar_Embedding_Path,
-                                   vocab=create_static_alphabet.bichar_alphabet.id2words, k_dim=200)
-wordembedding.handle()
+# # handle external word embedding to file for convenience
+# from loaddata.handle_wordEmbedding2File import WordEmbedding2File
+# wordembedding = WordEmbedding2File(wordEmbedding_path=args.bichar_Embedding_Path,
+#                                    vocab=create_static_alphabet.bichar_alphabet.id2words, k_dim=200)
+# wordembedding.handle()
 
 
 
@@ -155,12 +157,21 @@ if args.char_Embedding is True:
     args.pre_char_word_vecs = char_word_vecs
 if args.bichar_Embedding is True:
     args.pre_bichar_word_vecs = bichar_word_vecs
+
 args.use_cuda = (args.use_cuda) and torch.cuda.is_available()
+
 args.embed_char_num = create_alphabet.char_alphabet.m_size
 args.embed_bichar_num = create_alphabet.bichar_alphabet.m_size
 args.static_embed_char_num = create_static_alphabet.char_alphabet.m_size
 args.static_embed_bichar_num = create_static_alphabet.bichar_alphabet.m_size
+print("wwwww", args.embed_char_num)
+print("wwwww", args.static_embed_char_num)
+print("create_alphabet.char_alphabet.m_size", create_alphabet.char_alphabet.m_size)
+print("create_static_alphabet.char_alphabet.m_size", create_static_alphabet.char_alphabet.m_size)
+
+
 args.label_size = create_alphabet.label_alphabet.m_size
+
 args.create_alphabet = create_alphabet
 args.create_static_alphabet = create_static_alphabet
 # print(args.label_size)

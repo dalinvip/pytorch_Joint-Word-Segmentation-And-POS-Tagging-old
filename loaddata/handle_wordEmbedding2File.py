@@ -3,6 +3,7 @@
 """
     handle external word embedding to file
 """
+import torch
 import os
 class WordEmbedding2File:
     def __init__(self, wordEmbedding_path=None, vocab=None, k_dim=100):

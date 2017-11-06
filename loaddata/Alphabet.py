@@ -181,3 +181,4 @@ class Alphabet():
             return defineStr
         else:
             return self.id2words[qid]
+
