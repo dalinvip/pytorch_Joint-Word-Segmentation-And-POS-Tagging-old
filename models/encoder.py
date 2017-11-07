@@ -123,40 +123,17 @@ class Encoder(nn.Module):
         right_concat = F.tanh(self.liner(right_concat))
         right_concat = right_concat.view(batch_length, char_features_num, self.args.rnn_hidden_dim)
 
-        print(right_concat)
-        print("aaa", len(right_concat[0]))
-        # reverse_right = Variable(torch.LongTensor(batch_length, char_features_num, self.args.rnn_hidden_dim))
-        # for batch in range(batch_length):
-        #     middle = right_concat.size(1) // 2
-        #     # print(middle)
-        #     # for i, j in zip(range(0, middle, 1), range(right_concat.size(1) - 1, middle, -1)):
-        #     for i in range(right_concat.size(1)):
-        #         print(right_concat[batch][i].data)
-        #         reverse_right[batch][i].data = right_concat[batch][i].data
-        #         print(reverse_right[batch][i])
-        #         # temp = right_concat[batch, i].data
-        #         # print("temp", temp)
-        #         # right_concat[batch][i] = right_concat[batch][j]
-        #         # reverse_right[batch][i] = right_concat[batch, j].data
-        #         # right_concat[batch][j] = temp
-        #         # reverse_right[batch][j] = temp
-        # print(reverse_right)
+        # print(right_concat)
+        # reverse right_concat
         for batch in range(batch_length):
             middle = right_concat.size(1) // 2
             # print(middle)
             for i, j in zip(range(0, middle, 1), range(right_concat.size(1) - 1, middle, -1)):
-                # temp = right_concat[batch][i]
-                # print("wwwwwwwwww", i, j)
-                # temp = right_concat[batch][i].data
-                # print("temp", temp)
-                # right_concat[batch][i] = right_concat[batch][j]
-                right_concat[batch][i].data = right_concat[batch][j].data
-                # right_concat[batch][j] = temp
-                # right_concat[batch][j].data = temp
-            print(right_concat)
-
-
-
+                temp = torch.FloatTensor(right_concat[batch][i].size())
+                temp.copy_(right_concat[batch][i].data)
+                right_concat[batch][i].data.copy_(right_concat[batch][j].data)
+                right_concat[batch][j].data.copy_(temp)
+        # print(right_concat)
 
         right_concat = right_concat.permute(1, 0, 2)
         # non-linear dropout
@@ -169,14 +146,7 @@ class Encoder(nn.Module):
         # lstm_left_out, _ = self.lstm_left(left_concat, self.hidden)
         # lstm_right_out, _ = self.lstm_right(right_concat, self.hidden)
         lstm_left_out, _ = self.lstm_left(left_concat)
-        # print(right_concat)
-        # print(reversed(right_concat[0]))
-
-
-
         lstm_right_out, _ = self.lstm_right(right_concat)
-
-        # print("lstm_left {} lstm_right {}".format(lstm_left_out.size(), lstm_right_out.size()))
 
         encoder_output = torch.cat((lstm_left_out, lstm_right_out), 2).permute(1, 0, 2)
         # print(encoder_output.size())
