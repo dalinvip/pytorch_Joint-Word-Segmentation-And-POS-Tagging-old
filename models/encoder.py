@@ -43,8 +43,10 @@ class Encoder(nn.Module):
             self.static_bichar_embed.weight.data.copy_(torch.from_numpy(pretrained_bichar_weight))
             self.static_bichar_embed.weight.requires_grad = False
 
-        self.lstm_left = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
-        self.lstm_right = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
+        self.lstm_left = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim,
+                                 dropout=self.args.dropout, bias=True)
+        self.lstm_right = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim,
+                                  dropout=self.args.dropout, bias=True)
 
         # init lstm weight and bias
         init.xavier_uniform(self.lstm_left.weight_ih_l0)
@@ -147,6 +149,19 @@ class Encoder(nn.Module):
         # lstm_right_out, _ = self.lstm_right(right_concat, self.hidden)
         lstm_left_out, _ = self.lstm_left(left_concat)
         lstm_right_out, _ = self.lstm_right(right_concat)
+
+        # print("size", lstm_right_out.size())
+        # reverse lstm_right_out
+        lstm_right_out = lstm_right_out.permute(1, 0, 2)
+        for batch in range(batch_length):
+            middle = lstm_right_out.size(1) // 2
+            # print(middle)
+            for i, j in zip(range(0, middle, 1), range(lstm_right_out.size(1) - 1, middle, -1)):
+                temp = torch.FloatTensor(lstm_right_out[batch][i].size())
+                temp.copy_(lstm_right_out[batch][i].data)
+                lstm_right_out[batch][i].data.copy_(lstm_right_out[batch][j].data)
+                lstm_right_out[batch][j].data.copy_(temp)
+        lstm_right_out = lstm_right_out.permute(1, 0, 2)
 
         encoder_output = torch.cat((lstm_left_out, lstm_right_out), 2).permute(1, 0, 2)
         # print(encoder_output.size())
