@@ -85,7 +85,7 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             if steps % args.log_interval == 0:
                 # print("batch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%\r".format(
                 #     batch_count+1, loss.data[0], correct, total_num, train_acc*100))
-                sys.stdout.write("\rbatch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%".format(
+                sys.stdout.write("\rbatch_count = [{}] , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%".format(
                     batch_count+1, loss.data[0], correct, total_num, train_acc*100))
             if steps % args.dev_interval == 0:
                 print("\ndev F-score")
@@ -102,10 +102,6 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
                 print("\n")
                 model_encoder.train()
                 model_decoder.train()
-
-
-
-
 
 
 def cal_train_acc(batch_features, batch_count, decode_out_acc, args):
@@ -131,15 +127,19 @@ def cal_pre_fscore(batch_features, decode_out_acc, args, eval_seg, eval_pos):
     for index in range(batch_features.batch_length):
         inst = batch_features.inst[index]
         label_list = []
+        # print("aaa", label_list)
         for char_index in range(inst.chars_size):
             max_index = getMaxindex(decode_out_acc[index][char_index], args)
             label = args.create_alphabet.label_alphabet.from_id(max_index)
-            label_list.append(label)
+            # print(label)
+            if sep in label or len(label_list) > 0:
+                label_list.append(label)
         # print(label_list)
         jointPRF(label_list, inst, eval_seg, eval_pos)
+        # jointPRF_m(label_list, inst, eval_seg, eval_pos)
 
 
-def jointPRF(label_list, inst, seg_eval, pos_eval):
+def jointPRF_m(label_list, inst, seg_eval, pos_eval):
     # words = state.words
     # posLabels = state.pos_labels
     count = 0
@@ -149,13 +149,17 @@ def jointPRF(label_list, inst, seg_eval, pos_eval):
     pos_list = []
     # print(label_list)
     for index, value in enumerate(label_list):
+        # if sep not in label_list[index]:
+        #     continue
         label_sep, _, label_pos = value.partition("#")
         sep_list.append(label_sep)
         pos_list.append(label_pos)
 
+    print("**/*************/**************************************************")
+    print(sep_list)
+    print(pos_list)
     word_list = {}
     word_number = 0
-    # print(sep_list)
     for index, value in enumerate(sep_list):
         if sep_list[0] == sep:
             if value == sep or sep_list[0] == app:
@@ -198,6 +202,72 @@ def jointPRF(label_list, inst, seg_eval, pos_eval):
     for p in predict_pos:
         if p in inst.gold_pos:
             pos_eval.correct_num += 1
+
+
+def jointPRF(label_list, inst, seg_eval, pos_eval):
+    # words = state.words
+    # posLabels = state.pos_labels
+    count = 0
+    predict_seg = []
+    predict_pos = []
+    sep_list = []
+    pos_list = []
+    # print(label_list)
+    for index, value in enumerate(label_list):
+        # if sep not in label_list[index]:
+        #     continue
+        label_sep, _, label_pos = value.partition("#")
+        sep_list.append(label_sep)
+        pos_list.append(label_pos)
+
+    # print("**/*************/**************************************************")
+    # print(sep_list)
+    # print(pos_list)
+    word_list = {}
+    word_number = 0
+    for index, value in enumerate(sep_list):
+        if sep_list[0] == sep:
+            if value == sep or sep_list[0] == app:
+                word_number += 1
+                word_list[word_number] = 1
+            else:
+                # print(word_number)
+                word_list[word_number] += 1
+        if sep_list[0] == app:
+            if value == app and index == 0:
+                word_number = 1
+                word_list[word_number] = 1
+            else:
+                if value == app or sep_list[0] == sep:
+                    word_list[word_number] += 1
+                else:
+                    word_number += 1
+                    word_list[word_number] = 1
+                # print(word_number)
+
+    # print(word_list)
+
+    count = 0
+    for index in word_list:
+        predict_seg.append('[' + str(count) + ',' + str(count + word_list[index]) + ']')
+        predict_pos.append('[' + str(count) + ',' + str(count + word_list[index]) + ']' + pos_list[count])
+        count += word_list[index]
+    # print(predict_pos)
+    # print(predict_seg)
+    # print("\n\n\n ****************")
+
+    seg_eval.gold_num += len(inst.gold_seg)
+    seg_eval.predict_num += len(predict_seg)
+    for p in predict_seg:
+        if p in inst.gold_seg:
+            seg_eval.correct_num += 1
+
+    pos_eval.gold_num += len(inst.gold_pos)
+    pos_eval.predict_num += len(predict_pos)
+    for p in predict_pos:
+        if p in inst.gold_pos:
+            pos_eval.correct_num += 1
+
 
 def getMaxindex(decode_out_acc, args):
     # print("get max index ......")

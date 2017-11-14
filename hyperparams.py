@@ -24,8 +24,8 @@ class Hyperparams():
         self.epochs = 200
         self.batch_size = 16
         self.log_interval = 1
-        self.dev_interval = 50
-        self.test_interval = 50
+        self.dev_interval = 1
+        self.test_interval = 1
         self.save_dir = "snapshot"
         self.shuffle = True
         self.epochs_shuffle = True
