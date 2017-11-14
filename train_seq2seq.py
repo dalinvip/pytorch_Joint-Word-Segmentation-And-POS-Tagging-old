@@ -26,7 +26,8 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
     if args.Adam is True:
         print("Adam Training......")
         optimizer_encoder = torch.optim.Adam(params=filter(lambda p: p.requires_grad, model_encoder.parameters()),
-                                             lr=args.lr, weight_decay=args.init_weight_decay)
+                                             lr=args.lr,
+                                             weight_decay=args.init_weight_decay)
         optimizer_decoder = torch.optim.Adam(params=filter(lambda p: p.requires_grad, model_decoder.parameters()),
                                              lr=args.lr,
                                              weight_decay=args.init_weight_decay)
@@ -82,10 +83,12 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
 
             steps += 1
             if steps % args.log_interval == 0:
-                print("batch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%".format(
+                # print("batch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%\r".format(
+                #     batch_count+1, loss.data[0], correct, total_num, train_acc*100))
+                sys.stdout.write("\rbatch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%".format(
                     batch_count+1, loss.data[0], correct, total_num, train_acc*100))
             if steps % args.dev_interval == 0:
-                print("dev F-score")
+                print("\ndev F-score")
                 dev_eval_pos.clear()
                 dev_eval_seg.clear()
                 eval(dev_iter, model_encoder, model_decoder, args, dev_eval_seg, dev_eval_pos)
