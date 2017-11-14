@@ -10,6 +10,7 @@ from loaddata.Alphabet import Create_Alphabet, Alphabet
 from loaddata.Batch_Iterator import Iterators
 from models import encoder
 from models import decoder
+from models import decoder_wordlstm
 import train_seq2seq
 import train_ALL_LSTM
 import multiprocessing as mu
@@ -66,6 +67,7 @@ parser.add_argument('-dropout_embed', type=float, default=hyperparams.dropout_em
 parser.add_argument('-max-norm', type=float, default=hyperparams.max_norm, help='l2 constraint of parameters [default: 3.0]')
 parser.add_argument('-embed-dim', type=int, default=hyperparams.embed_dim, help='number of embedding dimension [default: 128]')
 parser.add_argument('-static', action='store_true', default=hyperparams.static, help='fix the embedding')
+parser.add_argument('-Wordlstm', action='store_true', default=hyperparams.Wordlstm, help='whether to use Wordlstm decoder model')
 parser.add_argument('-BiLSTM_1', action='store_true', default=hyperparams.BiLSTM_1, help='whether to use BiLSTM_1 model')
 parser.add_argument('-LSTM', action='store_true', default=hyperparams.LSTM, help='whether to use LSTM model')
 parser.add_argument('-fix_Embedding', action='store_true', default=hyperparams.fix_Embedding, help='whether to fix word embedding during training')
@@ -209,7 +211,12 @@ shutil.copy("./hyperparams.py", "./snapshot/" + mulu)
 
 # load model
 model_encoder = encoder.Encoder(args=args)
-model_decoder = decoder.Decoder(args=args)
+# model_decoder = decoder.Decoder(args=args)
+if args.Wordlstm is True:
+    print("loading word lstm decoder model")
+    model_decoder = decoder_wordlstm.Decoder_WordLstm(args=args)
+else:
+    model_decoder = decoder.Decoder(args=args)
 print(model_encoder)
 print(model_decoder)
 if args.use_cuda is True:

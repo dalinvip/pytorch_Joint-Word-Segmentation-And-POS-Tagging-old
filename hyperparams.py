@@ -35,6 +35,7 @@ class Hyperparams():
         self.clip_max_norm = 10
         self.static = False
         # model
+        self.Wordlstm = False
         self.LSTM = False
         self.BiLSTM_1 = False
         # select optim algorhtim to train
