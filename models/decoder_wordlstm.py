@@ -16,11 +16,11 @@ random.seed(hy.seed_num)
 """
 
 
-class Decoder(nn.Module):
+class Decoder_WordLstm(nn.Module):
 
     def __init__(self, args):
         print("Decoder model")
-        super(Decoder, self).__init__()
+        super(Decoder_WordLstm, self).__init__()
         self.args = args
 
         self.linear = nn.Linear(in_features=self.args.hidden_size,

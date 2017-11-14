@@ -161,6 +161,7 @@ class Encoder(nn.Module):
                 temp.copy_(lstm_right_out[batch][i].data)
                 lstm_right_out[batch][i].data.copy_(lstm_right_out[batch][j].data)
                 lstm_right_out[batch][j].data.copy_(temp)
+
         lstm_right_out = lstm_right_out.permute(1, 0, 2)
 
         encoder_output = torch.cat((lstm_left_out, lstm_right_out), 2).permute(1, 0, 2)
