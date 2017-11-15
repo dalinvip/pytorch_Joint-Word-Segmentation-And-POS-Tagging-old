@@ -36,7 +36,7 @@ class Decoder(nn.Module):
                                            np.sqrt(6 / (self.args.hidden_size + 1)))
 
     def forward(self, features, encoder_out):
-        print(encoder_out.size())
+        # print(encoder_out.size())
         # print("Decoder forward")
 
         non_linear = F.tanh(self.non_linear(encoder_out))
@@ -45,6 +45,8 @@ class Decoder(nn.Module):
         decoder_out = self.linear(non_linear)
         decoder_out_acc = decoder_out
         decoder_out = decoder_out.view(features.batch_length * encoder_out.size(1), -1)
+        print("a", decoder_out_acc.size())
+        print("b", decoder_out.size())
 
         return decoder_out, decoder_out_acc
 

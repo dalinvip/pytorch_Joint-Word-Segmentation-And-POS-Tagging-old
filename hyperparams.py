@@ -11,12 +11,12 @@ class Hyperparams():
 
         # data path
         # self.train_path = "./pos_test_data/train.ctb60.pos-1.hwc"
-        # self.train_path = "./pos_test_data/train.ctb60.pos.hwc"
-        # self.dev_path = "./pos_test_data/dev.ctb60.pos.hwc"
-        # self.test_path = "./pos_test_data/test.ctb60.pos.hwc"
-        self.train_path = "./posdata/train.ctb60.pos.hwc"
-        self.dev_path = "./posdata/dev.ctb60.pos.hwc"
-        self.test_path = "./posdata/test.ctb60.pos.hwc"
+        self.train_path = "./pos_test_data/train.ctb60.pos.hwc"
+        self.dev_path = "./pos_test_data/dev.ctb60.pos.hwc"
+        self.test_path = "./pos_test_data/test.ctb60.pos.hwc"
+        # self.train_path = "./posdata/train.ctb60.pos.hwc"
+        # self.dev_path = "./posdata/dev.ctb60.pos.hwc"
+        # self.test_path = "./posdata/test.ctb60.pos.hwc"
 
         self.learning_rate = 0.001
         self.learning_rate_decay = 0.9   # value is 1 means not change lr
@@ -35,7 +35,7 @@ class Hyperparams():
         self.clip_max_norm = 10
         self.static = False
         # model
-        self.Wordlstm = False
+        self.Wordlstm = True
         self.LSTM = False
         self.BiLSTM_1 = False
         # select optim algorhtim to train
@@ -58,6 +58,8 @@ class Hyperparams():
         self.bichar_Embedding = True
         self.bichar_Embedding_Path = "./word_embedding/bichar.vec"
         # self.bichar_Embedding_Path = "./word_embedding/convert_bichar.txt"
+        # self.pos_num = None
+        self.pos_dim = 100
 
         self.rnn_hidden_dim = 200
         self.hidden_size = 200

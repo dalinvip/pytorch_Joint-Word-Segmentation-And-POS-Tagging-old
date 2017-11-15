@@ -12,6 +12,7 @@ from models import encoder
 from models import decoder
 from models import decoder_wordlstm
 import train_seq2seq
+import train_seq2seq_wordlstm
 import train_ALL_LSTM
 import multiprocessing as mu
 import shutil
@@ -81,6 +82,7 @@ parser.add_argument('-embed_char_dim', type=int, default=hyperparams.embed_char_
 parser.add_argument('-embed_bichar_dim', type=int, default=hyperparams.embed_bichar_dim, help='number of bichar embedding dimension [default: 200]')
 parser.add_argument('-hidden_size', type=int, default=hyperparams.hidden_size, help='hidden dimension [default: 200]')
 # word embedding
+parser.add_argument('-pos_dim', type=int, default=hyperparams.pos_dim, help='pos_dim')
 parser.add_argument('-char_Embedding', action='store_true', default=hyperparams.char_Embedding, help='whether to load char embedding')
 parser.add_argument('-char_Embedding_path', type=str, default=hyperparams.char_Embedding_path, help='char_Embedding_path')
 parser.add_argument('-bichar_Embedding', action='store_true', default=hyperparams.bichar_Embedding, help='whether to load bichar embedding')
@@ -180,6 +182,7 @@ print("create_static_alphabet.char_alphabet.m_size", create_static_alphabet.char
 
 
 args.label_size = create_alphabet.label_alphabet.m_size
+args.pos_size = create_alphabet.pos_alphabet.m_size
 
 args.create_alphabet = create_alphabet
 args.create_static_alphabet = create_static_alphabet
@@ -229,6 +232,13 @@ if args.use_cuda is True:
 print("\n CPU Count is {} and Current Process is {} \n".format(mu.cpu_count(), mu.current_process()))
 # set thread number
 torch.set_num_threads(args.num_threads)
-train_seq2seq.train(train_iter=train_iter, dev_iter=dev_iter, test_iter=test_iter, model_encoder=model_encoder,
-                    model_decoder=model_decoder, args=args)
+if args.Wordlstm is True:
+    train_seq2seq_wordlstm.train(train_iter=train_iter, dev_iter=dev_iter, test_iter=test_iter,
+                                 model_encoder=model_encoder,
+                                 model_decoder=model_decoder, args=args)
+else:
+    train_seq2seq.train(train_iter=train_iter, dev_iter=dev_iter, test_iter=test_iter,
+                        model_encoder=model_encoder,
+                        model_decoder=model_decoder, args=args)
+
 
