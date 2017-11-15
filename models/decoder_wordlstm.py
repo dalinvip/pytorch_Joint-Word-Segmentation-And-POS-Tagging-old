@@ -71,7 +71,7 @@ class Decoder_WordLstm(nn.Module):
             real_char_num = feature.chars_size
             for id_char in range(char_features_num):
                 if id_char < real_char_num:
-                    hidden_now, cell_hidden = self.word_lstm(state, id_char, encoder_out[id_batch])
+                    hidden_now, cell_now = self.word_lstm(state, id_char, encoder_out[id_batch])
                     # print(hidden_now)
 
                     # not use lstm
@@ -82,7 +82,7 @@ class Decoder_WordLstm(nn.Module):
                     output = self.linear(v)
                     if id_char is 0:
                         output.data[0][self.args.create_alphabet.appID] = -1e+99
-
+                    self.action(state, id_char, output, hidden_now, cell_now, train)
                     sent_output.append(output)
                 else:
                     sent_output.append(self.bucket)
@@ -96,21 +96,22 @@ class Decoder_WordLstm(nn.Module):
         return batch_output, decoder_out_acc
 
     def word_lstm(self, state, index, encoder_out):
-        print("executing word lstm")
+        # print("executing word lstm")
         if index is 0:
-            print("index is zero")
+            # print("index is zero")
             hidden_last = self.h_bucket
             cell_last = self.c_bucket
             z = self.z_bucket
         else:
-            print("index is not zero")
+            # print("index is not zero")
             hidden_last = state.word_hiddens[-1]
             cell_last = state.word_cells[-1]
             if len(state.pos_id) > 0:
-                last_pos = Variable(torch.zeros(1))
+                last_pos = Variable(torch.zeros(1)).type(torch.LongTensor)
                 if self.args.use_cuda is True:
                     last_pos = last_pos.cuda()
                 last_pos.data[0] = state.pos_id[-1]
+                # print(last_pos)
                 last_pos_embed = self.dropout(self.pos_embed(last_pos))
             if len(state.words) > 0:
                 last_word_len = len(state.words[-1])
@@ -125,9 +126,9 @@ class Decoder_WordLstm(nn.Module):
             concat = torch.cat((last_pos_embed, last_word_embed), 1)
             z = self.dropout(F.tanh(self.combine_linear(concat)))
 
-        print("z", z.size())
-        print("hidden", hidden_last.size())
-        print("cell", cell_last.size())
+        # print("z", z.size())
+        # print("hidden", hidden_last.size())
+        # print("cell", cell_last.size())
 
         hidden_now, cell_now = self.lstmcell(z, (hidden_last, cell_last))
         state.all_h.append(hidden_now)
@@ -136,7 +137,40 @@ class Decoder_WordLstm(nn.Module):
         return hidden_now, cell_now
 
     def action(self, state, index, output, hidden_now, cell_now, train):
-        print("executing action")
+        # print("executing action")
+        # train = True
+        if train is True:
+            action = state.gold[index]
+        else:
+            actionID =self.getMaxindex(output.view(self.args.label_size), self.args)
+            action = self.args.create_alphabet.label_alphabet.from_id(actionID)
+            # print(actionID)
+            # print(action)
+        state.actions.append(action)
+
+        pos = action.find("#")
+        if pos is -1:
+            # app
+            state.words[-1] += state.chars[index]
+        else:
+            temp_word = state.chars[index]
+            state.words.append(temp_word)
+            posLabel = action[pos + 1:]
+            state.pos_labels.append(posLabel)
+            posId = self.args.create_alphabet.pos_alphabet.loadWord2idAndId2Word(posLabel)
+            state.pos_id.append(posId)
+            state.word_cells.append(cell_now)
+            state.word_hiddens.append(hidden_now)
+
+    def getMaxindex(self, decode_out_acc, args):
+        # print("get max index ......")
+        max = decode_out_acc.data[0]
+        maxIndex = 0
+        for idx in range(1, args.label_size):
+            if decode_out_acc.data[idx] > max:
+                max = decode_out_acc.data[idx]
+                maxIndex = idx
+        return maxIndex
 
 
 
