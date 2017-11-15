@@ -22,7 +22,8 @@ class Decoder_WordLstm(nn.Module):
         super(Decoder_WordLstm, self).__init__()
         self.args = args
 
-        self.lstm = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
+        # self.lstm = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
+        self.lstmcell = nn.LSTMCell(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
 
         self.pos_embed = nn.Embedding(num_embeddings=self.args.pos_size, embedding_dim=self.args.pos_dim)
 
@@ -31,6 +32,10 @@ class Decoder_WordLstm(nn.Module):
 
         self.non_linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2, out_features=self.args.hidden_size,
                                     bias=True)
+
+        self.combine_linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2 + self.args.pos_dim,
+                                        out_features=self.args.hidden_size, bias=True)
+
         self.dropout = nn.Dropout(self.args.dropout)
 
         init.xavier_uniform(self.linear.weight)
@@ -43,6 +48,14 @@ class Decoder_WordLstm(nn.Module):
         if self.args.use_cuda is True:
             self.bucket = self.bucket.cuda()
             self.bucket_rnn = self.bucket_rnn.cuda()
+
+        self.z_bucket = Variable(torch.zeros(1, self.args.hidden_size))
+        self.h_bucket = Variable(torch.zeros(1, self.args.rnn_hidden_dim))
+        self.c_bucket = Variable(torch.zeros(1, self.args.rnn_hidden_dim))
+        if self.args.use_cuda is True:
+            self.z_bucket = self.z_bucket.cuda()
+            self.h_bucket = self.h_bucket.cuda()
+            self.c_bucket = self.c_bucket.cuda()
 
     def forward(self, features, encoder_out, train=False):
         # print(encoder_out.size())
@@ -58,11 +71,18 @@ class Decoder_WordLstm(nn.Module):
             real_char_num = feature.chars_size
             for id_char in range(char_features_num):
                 if id_char < real_char_num:
-                    v = torch.cat((self.bucket_rnn, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
+                    hidden_now, cell_hidden = self.word_lstm(state, id_char, encoder_out[id_batch])
+                    # print(hidden_now)
+
+                    # not use lstm
+                    # v = torch.cat((self.bucket_rnn, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
+                    # use lstm
+                    v = torch.cat((hidden_now, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
                     # print("232", v.size())
                     output = self.linear(v)
                     if id_char is 0:
                         output.data[0][self.args.create_alphabet.appID] = -1e+99
+
                     sent_output.append(output)
                 else:
                     sent_output.append(self.bucket)
@@ -74,5 +94,50 @@ class Decoder_WordLstm(nn.Module):
         decoder_out_acc = batch_output.view(batch_length, encoder_out.size(1), -1)
         # print("de", decoder_out_acc.size())
         return batch_output, decoder_out_acc
+
+    def word_lstm(self, state, index, encoder_out):
+        print("executing word lstm")
+        if index is 0:
+            print("index is zero")
+            hidden_last = self.h_bucket
+            cell_last = self.c_bucket
+            z = self.z_bucket
+        else:
+            print("index is not zero")
+            hidden_last = state.word_hiddens[-1]
+            cell_last = state.word_cells[-1]
+            if len(state.pos_id) > 0:
+                last_pos = Variable(torch.zeros(1))
+                if self.args.use_cuda is True:
+                    last_pos = last_pos.cuda()
+                last_pos.data[0] = state.pos_id[-1]
+                last_pos_embed = self.dropout(self.pos_embed(last_pos))
+            if len(state.words) > 0:
+                last_word_len = len(state.words[-1])
+                start = index - last_word_len
+                end = index
+                chars_embed = []
+                for i in range(start, end):
+                    chars_embed.append(encoder_out[i].view(1, 1, 2 * self.args.rnn_hidden_dim))
+                chars_embed = torch.cat(chars_embed, 1)
+                last_word_embed = F.avg_pool1d(chars_embed.permute(0, 2, 1), last_word_len).view(1, self.args.rnn_hidden_dim * 2)
+
+            concat = torch.cat((last_pos_embed, last_word_embed), 1)
+            z = self.dropout(F.tanh(self.combine_linear(concat)))
+
+        print("z", z.size())
+        print("hidden", hidden_last.size())
+        print("cell", cell_last.size())
+
+        hidden_now, cell_now = self.lstmcell(z, (hidden_last, cell_last))
+        state.all_h.append(hidden_now)
+        state.all_c.append(cell_now)
+
+        return hidden_now, cell_now
+
+    def action(self, state, index, output, hidden_now, cell_now, train):
+        print("executing action")
+
+
 
 
