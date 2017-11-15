@@ -88,12 +88,13 @@ class Decoder_WordLstm(nn.Module):
                     sent_output.append(self.bucket)
             sent_output = torch.cat(sent_output, 0)
             batch_output.append(sent_output)
+            batch_state.append(state)
 
         batch_output = torch.cat(batch_output, 0)
         # print("batch_output", batch_output.size())
         decoder_out_acc = batch_output.view(batch_length, encoder_out.size(1), -1)
         # print("de", decoder_out_acc.size())
-        return batch_output, decoder_out_acc
+        return batch_output, batch_state, decoder_out_acc
 
     def word_lstm(self, state, index, encoder_out):
         # print("executing word lstm")

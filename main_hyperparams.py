@@ -233,10 +233,12 @@ print("\n CPU Count is {} and Current Process is {} \n".format(mu.cpu_count(), m
 # set thread number
 torch.set_num_threads(args.num_threads)
 if args.Wordlstm is True:
+    print("train_seq2seq_wordlstm")
     train_seq2seq_wordlstm.train(train_iter=train_iter, dev_iter=dev_iter, test_iter=test_iter,
                                  model_encoder=model_encoder,
                                  model_decoder=model_decoder, args=args)
 else:
+    print("train_seq2seq")
     train_seq2seq.train(train_iter=train_iter, dev_iter=dev_iter, test_iter=test_iter,
                         model_encoder=model_encoder,
                         model_decoder=model_decoder, args=args)
