@@ -12,6 +12,7 @@ from models import encoder
 from models import decoder
 from models import decoder_wordlstm
 from models import encoder_wordlstm
+from models import encoder_wordlstmcell
 import train_seq2seq
 import train_seq2seq_wordlstm
 import train_ALL_LSTM
@@ -227,7 +228,8 @@ shutil.copy("./hyperparams.py", "./snapshot/" + mulu)
 if args.Wordlstm is True:
     print("loading word lstm decoder model")
     model_decoder = decoder_wordlstm.Decoder_WordLstm(args=args)
-    model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
+    # model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
+    model_encoder = encoder_wordlstmcell.Encoder_WordLstm(args)
 else:
     model_decoder = decoder.Decoder(args=args)
     model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
