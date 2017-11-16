@@ -102,8 +102,19 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
                 test_eval_seg.clear()
                 eval(test_iter, model_encoder, model_decoder, args, test_eval_seg, test_eval_pos)
                 print("\n")
-                # model_encoder.train()
-                # model_decoder.train()
+        if steps is not 0:
+            print("\none epoch dev F-score")
+            dev_eval_pos.clear()
+            dev_eval_seg.clear()
+            eval(dev_iter, model_encoder, model_decoder, args, dev_eval_seg, dev_eval_pos)
+            # model_encoder.train()
+            # model_decoder.train()
+        if steps is not 0:
+            print("one epoch test F-score")
+            test_eval_pos.clear()
+            test_eval_seg.clear()
+            eval(test_iter, model_encoder, model_decoder, args, test_eval_seg, test_eval_pos)
+            print("\n")
 
 
 def cal_train_acc(batch_features, batch_count, decode_out_acc, args):
