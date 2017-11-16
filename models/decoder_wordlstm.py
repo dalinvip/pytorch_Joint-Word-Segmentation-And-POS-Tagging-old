@@ -26,8 +26,17 @@ class Decoder_WordLstm(nn.Module):
 
         # self.lstm = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
         self.lstmcell = nn.LSTMCell(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
+        init.xavier_uniform(self.lstmcell.weight_ih)
+        init.xavier_uniform(self.lstmcell.weight_hh)
+        self.lstmcell.bias_hh.data.uniform_(-np.sqrt(6 / (self.args.rnn_hidden_dim + 1)),
+                                           np.sqrt(6 / (self.args.rnn_hidden_dim + 1)))
+        self.lstmcell.bias_ih.data.uniform_(-np.sqrt(6 / (self.args.rnn_hidden_dim + 1)),
+                                           np.sqrt(6 / (self.args.rnn_hidden_dim + 1)))
 
         self.pos_embed = nn.Embedding(num_embeddings=self.args.pos_size, embedding_dim=self.args.pos_dim)
+        init.uniform(self.pos_embed.weight,
+                     a=-np.sqrt(3 / self.args.pos_dim),
+                     b=np.sqrt(3 / self.args.pos_dim))
 
         self.linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2 + self.args.hidden_size,
                                 out_features=self.args.label_size, bias=False)
@@ -38,14 +47,17 @@ class Decoder_WordLstm(nn.Module):
         self.combine_linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2 + self.args.pos_dim,
                                         out_features=self.args.hidden_size, bias=True)
 
+        init.xavier_uniform(self.linear.weight)
+        init.xavier_uniform(self.non_linear.weight)
+        init.xavier_uniform(self.combine_linear.weight)
+        self.non_linear.bias.data.uniform_(-np.sqrt(6 / (self.args.hidden_size + 1)),
+                                           np.sqrt(6 / (self.args.hidden_size + 1)))
+        self.combine_linear.bias.data.uniform_(-np.sqrt(6 / (self.args.hidden_size + 1)),
+                                               np.sqrt(6 / (self.args.hidden_size + 1)))
+
         self.dropout = nn.Dropout(self.args.dropout)
 
         self.softmax = nn.LogSoftmax()
-
-        init.xavier_uniform(self.linear.weight)
-        init.xavier_uniform(self.non_linear.weight)
-        self.non_linear.bias.data.uniform_(-np.sqrt(6 / (self.args.hidden_size + 1)),
-                                           np.sqrt(6 / (self.args.hidden_size + 1)))
 
         self.bucket = Variable(torch.zeros(1, self.args.label_size))
         self.bucket_rnn = Variable(torch.zeros(1, self.args.rnn_hidden_dim))
