@@ -11,6 +11,7 @@ from loaddata.Batch_Iterator import Iterators
 from models import encoder
 from models import decoder
 from models import decoder_wordlstm
+from models import encoder_wordlstm
 import train_seq2seq
 import train_seq2seq_wordlstm
 import train_ALL_LSTM
@@ -127,7 +128,8 @@ def dalaloader(args):
     train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=args.batch_size,
                                                                  data=[train_data, dev_data, test_data],
                                                                  # operator=create_static_alphabet, args=args)
-                                                                 operator=create_alphabet, args=args)
+                                                                 operator=create_alphabet,
+                                                                 operator_static=create_static_alphabet, args=args)
                                                                  # operator=create_alphabet_iter, args=args)
     return train_iter, dev_iter, test_iter, create_alphabet, create_static_alphabet
 
@@ -220,13 +222,15 @@ shutil.copy("./hyperparams.py", "./snapshot/" + mulu)
 
 
 # load model
-model_encoder = encoder.Encoder(args=args)
+# model_encoder = encoder.Encoder(args=args)
 # model_decoder = decoder.Decoder(args=args)
 if args.Wordlstm is True:
     print("loading word lstm decoder model")
     model_decoder = decoder_wordlstm.Decoder_WordLstm(args=args)
+    model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
 else:
     model_decoder = decoder.Decoder(args=args)
+    model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
 print(model_encoder)
 print(model_decoder)
 if args.use_cuda is True:

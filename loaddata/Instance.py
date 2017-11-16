@@ -33,6 +33,9 @@ class instance():
         self.chars_index = []
         self.bichars_left_index = []
         self.bichars_right_index = []
+        self.static_chars_index = []
+        self.static_bichars_left_index = []
+        self.static_bichars_right_index = []
         self.pos_index = []
         self.gold_index = []
 
@@ -46,14 +49,20 @@ class Batch_Features:
         self.char_features = None
         self.bichar_left_features = None
         self.bichar_right_features = None
+        self.static_char_features = None
+        self.static_bichar_left_features = None
+        self.static_bichar_right_features = None
         self.gold_features = None
 
     def cuda(self, features):
         features.word_features = features.word_features.cuda()
         features.pos_features = features.pos_features.cuda()
         features.char_features = features.char_features.cuda()
+        features.static_char_features = features.static_char_features.cuda()
         features.bichar_left_features = features.bichar_left_features.cuda()
+        features.static_bichar_left_features = features.static_bichar_left_features.cuda()
         features.bichar_right_features = features.bichar_right_features.cuda()
+        features.static_bichar_right_features = features.static_bichar_right_features.cuda()
         features.gold_features = features.gold_features.cuda()
         # return features
         # self.word_features.cuda()

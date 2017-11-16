@@ -29,9 +29,9 @@ class Decoder_WordLstm(nn.Module):
         init.xavier_uniform(self.lstmcell.weight_ih)
         init.xavier_uniform(self.lstmcell.weight_hh)
         self.lstmcell.bias_hh.data.uniform_(-np.sqrt(6 / (self.args.rnn_hidden_dim + 1)),
-                                           np.sqrt(6 / (self.args.rnn_hidden_dim + 1)))
+                                            np.sqrt(6 / (self.args.rnn_hidden_dim + 1)))
         self.lstmcell.bias_ih.data.uniform_(-np.sqrt(6 / (self.args.rnn_hidden_dim + 1)),
-                                           np.sqrt(6 / (self.args.rnn_hidden_dim + 1)))
+                                            np.sqrt(6 / (self.args.rnn_hidden_dim + 1)))
 
         self.pos_embed = nn.Embedding(num_embeddings=self.args.pos_size, embedding_dim=self.args.pos_dim)
         init.uniform(self.pos_embed.weight,
@@ -97,7 +97,7 @@ class Decoder_WordLstm(nn.Module):
                     # print("232", v.size())
                     output = self.linear(v)
                     if id_char is 0:
-                        output.data[0][self.args.create_alphabet.appID] = -1e+99
+                        output.data[0][self.args.create_alphabet.appID] = -10e+99
                     self.action(state, id_char, output, hidden_now, cell_now, train)
                     sent_output.append(output)
                 else:
