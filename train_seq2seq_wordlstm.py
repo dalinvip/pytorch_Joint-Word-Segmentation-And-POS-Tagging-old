@@ -70,7 +70,8 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             # decoder_out_acc =
             train_acc, correct, total_num = cal_train_acc(batch_features, batch_count, decoder_out_acc, args)
             # loss = F.nll_loss(decoder_out, batch_features.gold_features)
-            loss = F.cross_entropy(decoder_out, batch_features.gold_features)
+            # loss = F.cross_entropy(decoder_out, batch_features.gold_features)
+            loss = torch.nn.functional.nll_loss(decoder_out, batch_features.gold_features)
             # print("loss {}".format(loss.data[0]))
 
             loss.backward()
@@ -93,16 +94,16 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
                 dev_eval_pos.clear()
                 dev_eval_seg.clear()
                 eval(dev_iter, model_encoder, model_decoder, args, dev_eval_seg, dev_eval_pos)
-                model_encoder.train()
-                model_decoder.train()
+                # model_encoder.train()
+                # model_decoder.train()
             if steps % args.test_interval == 0:
                 print("test F-score")
                 test_eval_pos.clear()
                 test_eval_seg.clear()
                 eval(test_iter, model_encoder, model_decoder, args, test_eval_seg, test_eval_pos)
                 print("\n")
-                model_encoder.train()
-                model_decoder.train()
+                # model_encoder.train()
+                # model_decoder.train()
 
 
 def cal_train_acc(batch_features, batch_count, decode_out_acc, args):
@@ -181,6 +182,9 @@ def eval(data_iter, model_encoder, model_decoder, args, eval_seg, eval_pos):
     p, r, f = eval_pos.getFscore()
     print("pos dev: precision = {}%  recall = {}% , f-score = {}%".format(p, r, f))
     # print("\n")
+
+    model_encoder.train()
+    model_decoder.train()
 
 
 

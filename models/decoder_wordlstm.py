@@ -40,6 +40,8 @@ class Decoder_WordLstm(nn.Module):
 
         self.dropout = nn.Dropout(self.args.dropout)
 
+        self.softmax = nn.LogSoftmax()
+
         init.xavier_uniform(self.linear.weight)
         init.xavier_uniform(self.non_linear.weight)
         self.non_linear.bias.data.uniform_(-np.sqrt(6 / (self.args.hidden_size + 1)),
@@ -93,6 +95,7 @@ class Decoder_WordLstm(nn.Module):
             batch_state.append(state)
 
         batch_output = torch.cat(batch_output, 0)
+        batch_output = self.softmax(batch_output)
         # print("batch_output", batch_output.size())
         decoder_out_acc = batch_output.view(batch_length, encoder_out.size(1), -1)
         # print("de", decoder_out_acc.size())
