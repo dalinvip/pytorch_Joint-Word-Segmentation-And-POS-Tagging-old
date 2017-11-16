@@ -2,7 +2,7 @@
 from loaddata.common import paddingkey
 import torch.nn
 import torch.nn as nn
-import  torch.nn.functional as F
+import torch.nn.functional as F
 from torch.autograd import Variable
 import torch.nn.init as init
 import numpy as np
@@ -15,6 +15,8 @@ random.seed(hy.seed_num)
 """
     sequence to sequence Decoder model
 """
+
+
 class Decoder_WordLstm(nn.Module):
 
     def __init__(self, args):

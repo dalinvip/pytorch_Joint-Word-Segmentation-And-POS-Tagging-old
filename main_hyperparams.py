@@ -77,6 +77,9 @@ parser.add_argument('-word_Embedding_Path', type=str, default=hyperparams.word_E
 parser.add_argument('-rnn_hidden_dim', type=int, default=hyperparams.rnn_hidden_dim, help='the number of embedding dimension in LSTM hidden layer')
 parser.add_argument('-rnn_num_layers', type=int, default=hyperparams.rnn_num_layers, help='the number of embedding dimension in LSTM hidden layer')
 parser.add_argument('-min_freq', type=int, default=hyperparams.min_freq, help='min freq to include during built the vocab')
+parser.add_argument('-word_min_freq', type=int, default=hyperparams.word_min_freq, help='word_min_freq')
+parser.add_argument('-char_min_freq', type=int, default=hyperparams.char_min_freq, help='char_min_freq')
+parser.add_argument('-bichar_min_freq', type=int, default=hyperparams.bichar_min_freq, help='bichar_min_freq')
 # encoder model and decoder model
 parser.add_argument('-embed_char_dim', type=int, default=hyperparams.embed_char_dim, help='number of char embedding dimension [default: 200]')
 parser.add_argument('-embed_bichar_dim', type=int, default=hyperparams.embed_bichar_dim, help='number of bichar embedding dimension [default: 200]')
@@ -106,7 +109,8 @@ def dalaloader(args):
     train_data, dev_data, test_data = data_loader.load_data(path=[args.train_path, args.dev_path, args.test_path],
                                                             shuffle=args.shuffle)
     # create the alphabet
-    create_alphabet = Create_Alphabet(min_freq=args.min_freq)
+    create_alphabet = Create_Alphabet(min_freq=args.min_freq, word_min_freq=args.word_min_freq,
+                                      char_min_freq=args.char_min_freq, bichar_min_freq=args.bichar_min_freq)
     # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
     create_alphabet.createAlphabet(train_data=train_data)
 
@@ -115,7 +119,8 @@ def dalaloader(args):
     # # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
     # create_alphabet_iter.createAlphabet(train_data=train_data)
 
-    create_static_alphabet = Create_Alphabet(min_freq=args.min_freq)
+    create_static_alphabet = Create_Alphabet(min_freq=args.min_freq, word_min_freq=args.word_min_freq,
+                                             char_min_freq=args.char_min_freq, bichar_min_freq=args.bichar_min_freq)
     create_static_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
     # create iterator
     create_iter = Iterators()
@@ -134,11 +139,13 @@ train_iter, dev_iter, test_iter, create_alphabet, create_static_alphabet = dalal
 
 if args.char_Embedding is True:
     print("loading char embedding.......")
-    char_word_vecs = Word_Embedding().load_my_vecs(path=args.char_Embedding_path, vocab=create_static_alphabet.char_alphabet.id2words,
-                                            freqs=None, k=args.embed_char_dim)
+    char_word_vecs = Word_Embedding().load_my_vecs(path=args.char_Embedding_path,
+                                                   vocab=create_static_alphabet.char_alphabet.id2words,
+                                                   freqs=None, k=args.embed_char_dim)
     print("avg handle tha oov words")
-    char_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=char_word_vecs, vocab=create_static_alphabet.char_alphabet.id2words,
-                                                          k=args.embed_char_dim)
+    char_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=char_word_vecs,
+                                                               vocab=create_static_alphabet.char_alphabet.id2words,
+                                                               k=args.embed_char_dim)
     # print(char_word_vecs)
 
 if args.bichar_Embedding is True:

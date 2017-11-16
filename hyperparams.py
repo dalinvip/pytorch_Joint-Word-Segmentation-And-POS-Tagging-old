@@ -45,6 +45,9 @@ class Hyperparams():
         self.optim_momentum_value = 0.9
         # min freq to include during built the vocab, default is 1
         self.min_freq = 1
+        self.word_min_freq = 1
+        self.char_min_freq = 2
+        self.bichar_min_freq = 2
         # word_Embedding
         self.word_Embedding = True
         self.word_Embedding_Path = "./word2vec/glove.sentiment.conj.pretrained.txt"

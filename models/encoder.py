@@ -72,7 +72,6 @@ class Encoder(nn.Module):
         init_linear_value = np.sqrt(6 / self.args.hidden_size + 1)
         self.liner.bias.data.uniform_(-init_linear_value, init_linear_value)
 
-
     def init_hidden_cell(self, num_layers=1, batch_size=1):
         # the first is the hidden h
         # the second is the cell  c

@@ -14,18 +14,23 @@ random.seed(hy.seed_num)
 
 
 class Create_Alphabet():
-    def __init__(self, min_freq=1):
+    def __init__(self, min_freq=1, word_min_freq=1, char_min_freq=1, bichar_min_freq=1,):
 
         self.min_freq = min_freq
+        self.word_min_freq = word_min_freq
+        self.char_min_freq = char_min_freq
+        self.bichar_min_freq = bichar_min_freq
 
         self.word_state = collections.OrderedDict()
         self.char_state = collections.OrderedDict()
         self.bichar_state = collections.OrderedDict()
         self.pos_state = collections.OrderedDict()
 
-        self.word_alphabet = Alphabet(min_freq=min_freq)
-        self.char_alphabet = Alphabet(min_freq=min_freq)
-        self.bichar_alphabet = Alphabet(min_freq=min_freq)
+        self.word_alphabet = Alphabet(min_freq=word_min_freq)
+        # self.char_alphabet = Alphabet(min_freq=min_freq)
+        # self.bichar_alphabet = Alphabet(min_freq=min_freq)
+        self.char_alphabet = Alphabet(min_freq=char_min_freq)
+        self.bichar_alphabet = Alphabet(min_freq=bichar_min_freq)
         # pos min_freq = 1, not cut
         self.pos_alphabet = Alphabet(min_freq=1)
         self.label_alphabet = Alphabet(min_freq=min_freq)
@@ -95,14 +100,22 @@ class Create_Alphabet():
                 self.label_alphabet.loadWord2idAndId2Word(gold)
 
             # copy with the seq/app/unkkey/nullkey/paddingkey
-            self.word_state[unkkey] = self.min_freq + 1
-            self.word_state[paddingkey] = self.min_freq + 1
-            self.char_state[unkkey] = self.min_freq + 1
-            self.char_state[paddingkey] = self.min_freq + 1
-            self.bichar_state[unkkey] = self.min_freq + 1
-            self.bichar_state[paddingkey] = self.min_freq + 1
-            self.pos_state[unkkey] = 1
-            self.pos_state[paddingkey] = 1
+            # self.word_state[unkkey] = self.min_freq + 1
+            # self.word_state[paddingkey] = self.min_freq + 1
+            # self.char_state[unkkey] = self.min_freq + 1
+            # self.char_state[paddingkey] = self.min_freq + 1
+            # self.bichar_state[unkkey] = self.min_freq + 1
+            # self.bichar_state[paddingkey] = self.min_freq + 1
+            # self.pos_state[unkkey] = 1
+            # self.pos_state[paddingkey] = 1
+            self.word_state[unkkey] = self.word_min_freq + 1
+            self.word_state[paddingkey] = self.word_min_freq + 1
+            self.char_state[unkkey] = self.char_min_freq + 1
+            self.char_state[paddingkey] = self.char_min_freq + 1
+            self.bichar_state[unkkey] = self.bichar_min_freq + 1
+            self.bichar_state[paddingkey] = self.bichar_min_freq + 1
+            self.pos_state[unkkey] = 2
+            self.pos_state[paddingkey] = 2
 
             if index == debug_index:
                 # only some sentence for debug
@@ -139,7 +152,7 @@ class Create_Alphabet():
 
         # copy the app seq ID
         self.appID = self.label_alphabet.loadWord2idAndId2Word(app)
-        self.sepID =self.label_alphabet.loadWord2idAndId2Word(sep)
+        self.sepID = self.label_alphabet.loadWord2idAndId2Word(sep)
         # print(self.appID)
         # print(self.sepID)
         # print(self.word_alphabet.id2words)

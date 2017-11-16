@@ -15,6 +15,8 @@ random.seed(hy.seed_num)
 """
     sequence to sequence Decoder model
 """
+
+
 class Decoder_WordLstm(nn.Module):
 
     def __init__(self, args):
