@@ -25,7 +25,13 @@ class Encoder_WordLstm(nn.Module):
 
         # random
         self.char_embed = nn.Embedding(self.args.embed_char_num, self.args.embed_char_dim)
+        for index in range(self.args.embed_char_dim):
+            self.char_embed.weight.data[self.args.create_alphabet.char_PaddingID][index] = 0
+        self.char_embed.weight.requires_grad = True
         self.bichar_embed = nn.Embedding(self.args.embed_bichar_num, self.args.embed_bichar_dim)
+        for index in range(self.args.embed_bichar_dim):
+            self.bichar_embed.weight.data[self.args.create_alphabet.bichar_PaddingID][index] = 0
+        self.bichar_embed.weight.requires_grad = True
         # fix the word embedding
         self.static_char_embed = nn.Embedding(self.args.static_embed_char_num, self.args.embed_char_dim)
         self.static_bichar_embed = nn.Embedding(self.args.static_embed_bichar_num, self.args.embed_bichar_dim)
