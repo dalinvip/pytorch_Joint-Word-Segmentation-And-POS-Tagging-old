@@ -10,10 +10,12 @@ class Hyperparams():
     def __init__(self):
 
         # data path
-        # self.train_path = "./pos_test_data/train.ctb60.pos-1.hwc"
-        self.train_path = "./pos_test_data/train.ctb60.pos.hwc"
-        self.dev_path = "./pos_test_data/dev.ctb60.pos.hwc"
-        self.test_path = "./pos_test_data/test.ctb60.pos.hwc"
+        self.train_path = "./pos_test_data/train.ctb60.pos-1.hwc"
+        self.dev_path = "./pos_test_data/dev.ctb60.pos-1.hwc"
+        self.test_path = "./pos_test_data/test.ctb60.pos-1.hwc"
+        # self.train_path = "./pos_test_data/train.ctb60.pos.hwc"
+        # self.dev_path = "./pos_test_data/dev.ctb60.pos.hwc"
+        # self.test_path = "./pos_test_data/test.ctb60.pos.hwc"
         # self.train_path = "./posdata/train.ctb60.pos.hwc"
         # self.dev_path = "./posdata/dev.ctb60.pos.hwc"
         # self.test_path = "./posdata/test.ctb60.pos.hwc"
@@ -24,8 +26,8 @@ class Hyperparams():
         self.epochs = 200
         self.batch_size = 16
         self.log_interval = 1
-        self.dev_interval = 2
-        self.test_interval = 2
+        self.dev_interval = 2000
+        self.test_interval = 2000
         self.save_dir = "snapshot"
         self.shuffle = True
         self.epochs_shuffle = True
