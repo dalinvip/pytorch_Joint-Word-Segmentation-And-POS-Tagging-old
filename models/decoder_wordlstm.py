@@ -34,6 +34,7 @@ class Decoder_WordLstm(nn.Module):
                                             np.sqrt(6 / (self.args.rnn_hidden_dim + 1)))
 
         self.pos_embed = nn.Embedding(num_embeddings=self.args.pos_size, embedding_dim=self.args.pos_dim)
+        self.pos_embed.weight.requires_grad = True
         init.uniform(self.pos_embed.weight,
                      a=-np.sqrt(3 / self.args.pos_dim),
                      b=np.sqrt(3 / self.args.pos_dim))

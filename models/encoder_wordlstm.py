@@ -42,11 +42,15 @@ class Encoder_WordLstm(nn.Module):
         if args.char_Embedding is True:
             pretrained_char_weight = np.array(args.pre_char_word_vecs)
             self.static_char_embed.weight.data.copy_(torch.from_numpy(pretrained_char_weight))
+            for index in range(self.args.embed_char_dim):
+                self.static_char_embed.weight.data[self.args.create_static_alphabet.char_PaddingID][index] = 0
             self.static_char_embed.weight.requires_grad = False
 
         if args.bichar_Embedding is True:
             pretrained_bichar_weight = np.array(args.pre_bichar_word_vecs)
             self.static_bichar_embed.weight.data.copy_(torch.from_numpy(pretrained_bichar_weight))
+            for index in range(self.args.embed_bichar_dim):
+                self.static_bichar_embed.weight.data[self.args.create_static_alphabet.bichar_PaddingID][index] = 0
             self.static_bichar_embed.weight.requires_grad = False
 
         self.lstm_left = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim,

@@ -3,7 +3,7 @@ import random
 torch.manual_seed(121)
 random.seed(121)
 # random seed
-seed_num = 0
+seed_num = 233
 
 
 class Hyperparams():
@@ -21,13 +21,13 @@ class Hyperparams():
         # self.test_path = "./posdata/test.ctb60.pos.hwc"
 
         self.learning_rate = 0.001
-        self.learning_rate_decay = 0.9   # value is 1 means not change lr
-        # self.learning_rate_decay = 1   # value is 1 means not change lr
-        self.epochs = 200
+        # self.learning_rate_decay = 0.9   # value is 1 means not change lr
+        self.learning_rate_decay = 1   # value is 1 means not change lr
+        self.epochs = 2000
         self.batch_size = 16
         self.log_interval = 1
-        self.dev_interval = 2000
-        self.test_interval = 2000
+        self.dev_interval = 4000000
+        self.test_interval = 4000000
         self.save_dir = "snapshot"
         self.shuffle = True
         self.epochs_shuffle = True
