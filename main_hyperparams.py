@@ -133,6 +133,7 @@ def dalaloader(args):
                                                                  operator_static=create_static_alphabet, args=args)
                                                                  # operator=create_alphabet_iter, args=args)
     return train_iter, dev_iter, test_iter, create_alphabet, create_static_alphabet
+    # return train_iter, dev_iter, test_iter, create_alphabet, create_alphabet
 
 
 # get iter

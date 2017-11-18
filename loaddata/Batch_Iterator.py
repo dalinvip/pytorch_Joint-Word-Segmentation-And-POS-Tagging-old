@@ -49,6 +49,7 @@ class Iterators():
                 # if wordID is None:
                 if wordID == -1:
                     wordID = operator.word_UnkkID
+                    # wordID = operator
                 inst.words_index.append(wordID)
 
                 pos = inst.pos[index]
