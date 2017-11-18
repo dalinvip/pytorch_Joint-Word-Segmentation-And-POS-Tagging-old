@@ -108,14 +108,6 @@ class Create_Alphabet():
             # self.bichar_state[paddingkey] = self.min_freq + 1
             # self.pos_state[unkkey] = 1
             # self.pos_state[paddingkey] = 1
-            self.word_state[unkkey] = self.word_min_freq + 1
-            self.word_state[paddingkey] = self.word_min_freq + 1
-            self.char_state[unkkey] = self.char_min_freq + 1
-            self.char_state[paddingkey] = self.char_min_freq + 1
-            self.bichar_state[unkkey] = self.bichar_min_freq + 1
-            self.bichar_state[paddingkey] = self.bichar_min_freq + 1
-            self.pos_state[unkkey] = 2
-            self.pos_state[paddingkey] = 2
 
             if index == debug_index:
                 # only some sentence for debug
@@ -125,6 +117,17 @@ class Create_Alphabet():
                 print(self.pos_state, "*************************")
                 print(self.label_alphabet.words2id)
                 break
+
+        self.word_state[unkkey] = self.word_min_freq
+        self.word_state[paddingkey] = self.word_min_freq
+        self.char_state[unkkey] = self.char_min_freq
+        self.char_state[paddingkey] = self.char_min_freq
+        self.bichar_state[unkkey] = self.bichar_min_freq
+        self.bichar_state[paddingkey] = self.bichar_min_freq
+        self.pos_state[unkkey] = 1
+        self.pos_state[paddingkey] = 1
+
+
 
         # create the id2words and words2id
         self.word_alphabet.initialWord2idAndId2Word(self.word_state)
@@ -175,7 +178,9 @@ class Alphabet():
     def initialWord2idAndId2Word(self, data):
         for key in data:
             if data[key] >= self.min_freq:
-                Alphabet.loadWord2idAndId2Word(self, key)
+                # Alphabet.loadWord2idAndId2Word(self, key)
+                self.loadWord2idAndId2Word(key)
+        self.set_fixed_flag(True)
 
     # def loadWord2idAndId2Word(self, string):
     #     if string in self.words2id:
@@ -196,16 +201,31 @@ class Alphabet():
             return self.words2id[string]
         else:
             if not self.m_b_fixed:
-                new_id = self.word2id_id
+                newid = self.m_size
                 self.id2words.append(string)
-                self.words2id[string] = new_id
-                self.word2id_id += 1
-                self.m_size = self.word2id_id
+                self.words2id[string] = newid
+                self.m_size += 1
                 if self.m_size >= self.max_cap:
                     self.m_b_fixed = True
-                return new_id
+                return newid
             else:
                 return -1
+
+    # def loadWord2idAndId2Word(self, string):
+    #     if string in self.words2id:
+    #         return self.words2id[string]
+    #     else:
+    #         if not self.m_b_fixed:
+    #             new_id = self.word2id_id
+    #             self.id2words.append(string)
+    #             self.words2id[string] = new_id
+    #             self.word2id_id += 1
+    #             self.m_size = self.word2id_id
+    #             if self.m_size >= self.max_cap:
+    #                 self.m_b_fixed = True
+    #             return new_id
+    #         else:
+    #             return -1
 
     def from_id(self, qid, defineStr = ''):
         if int(qid) < 0 or self.m_size <= qid:
