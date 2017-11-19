@@ -34,7 +34,11 @@ class Encoder_WordLstm(nn.Module):
         self.bichar_embed.weight.requires_grad = True
         # fix the word embedding
         self.static_char_embed = nn.Embedding(self.args.static_embed_char_num, self.args.embed_char_dim)
+        init.uniform(self.static_char_embed.weight, a=-np.sqrt(3 / self.args.embed_char_dim),
+                     b=np.sqrt(3 / self.args.embed_char_dim))
         self.static_bichar_embed = nn.Embedding(self.args.static_embed_bichar_num, self.args.embed_bichar_dim)
+        init.uniform(self.static_bichar_embed.weight, a=-np.sqrt(3 / self.args.embed_bichar_dim),
+                     b=np.sqrt(3 / self.args.embed_bichar_dim))
 
         # self.char_embed.cuda()
         # self.bichar_embed.cuda()
