@@ -205,7 +205,8 @@ class Iterators():
             # copy with the bichar_right features
             for id_bichar_right_index in range(max_bichar_size):
                 if id_bichar_right_index < inst.bichars_size:
-                    batch_bichar_right_features.data[id_inst][id_bichar_right_index] = inst.bichars_left_index[id_bichar_right_index]
+                    # batch_bichar_right_features.data[id_inst][id_bichar_right_index] = inst.bichars_left_index[id_bichar_right_index]
+                    batch_bichar_right_features.data[id_inst][id_bichar_right_index] = inst.bichars_right_index[id_bichar_right_index]
                     batch_static_bichar_right_features.data[id_inst][id_bichar_right_index] = inst.static_bichars_right_index[id_bichar_right_index]
                 else:
                     batch_bichar_right_features.data[id_inst][id_bichar_right_index] = operator.bichar_PaddingID

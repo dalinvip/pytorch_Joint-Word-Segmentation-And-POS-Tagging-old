@@ -97,6 +97,8 @@ class Word_Embedding():
             avg = round(avg, 6)
             zero.append(float(avg))
 
+        # print("zero", zero)
+
         list_word2vec = []
         oov = 0
         iov = 0

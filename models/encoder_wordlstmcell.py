@@ -55,6 +55,8 @@ class Encoder_WordLstm(nn.Module):
             print("bichar_Embedding")
             pretrained_bichar_weight = np.array(args.pre_bichar_word_vecs)
             self.static_bichar_embed.weight.data.copy_(torch.from_numpy(pretrained_bichar_weight))
+            # print(self.static_bichar_embed.weight.data[self.args.create_static_alphabet.bichar_PaddingID])
+            # print(self.static_bichar_embed.weight.data[self.args.create_static_alphabet.bichar_UnkID])
             for index in range(self.args.embed_bichar_dim):
                 self.static_bichar_embed.weight.data[self.args.create_static_alphabet.bichar_PaddingID][index] = 0
             self.static_bichar_embed.weight.requires_grad = False
@@ -118,7 +120,8 @@ class Encoder_WordLstm(nn.Module):
         # dropout
         char_features = self.dropout_embed(char_features)
         bichar_left_features = self.dropout_embed(bichar_left_features)
-        bichar_left_features = self.dropout_embed(bichar_left_features)
+        # bichar_left_features = self.dropout_embed(bichar_left_features)
+        bichar_right_features = self.dropout_embed(bichar_right_features)
         static_char_features = self.dropout_embed(static_char_features)
         static_bichar_l_features = self.dropout_embed(static_bichar_l_features)
         static_bichar_r_features = self.dropout_embed(static_bichar_r_features)

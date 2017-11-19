@@ -147,12 +147,12 @@ if args.char_Embedding is True:
                                                    vocab=create_static_alphabet.char_alphabet.id2words,
                                                    freqs=None, k=args.embed_char_dim)
     print("avg handle tha oov words")
-    # char_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=char_word_vecs,
-    #                                                            vocab=create_static_alphabet.char_alphabet.id2words,
-    #                                                            k=args.embed_char_dim)
-    char_word_vecs = Word_Embedding().add_unknown_words_by_uniform(word_vecs=char_word_vecs,
-                                                                   vocab=create_static_alphabet.char_alphabet.id2words,
-                                                                   k=args.embed_char_dim)
+    char_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=char_word_vecs,
+                                                               vocab=create_static_alphabet.char_alphabet.id2words,
+                                                               k=args.embed_char_dim)
+    # char_word_vecs = Word_Embedding().add_unknown_words_by_uniform(word_vecs=char_word_vecs,
+    #                                                                vocab=create_static_alphabet.char_alphabet.id2words,
+    #                                                                k=args.embed_char_dim)
     # print(char_word_vecs)
 
 if args.bichar_Embedding is True:
@@ -161,12 +161,12 @@ if args.bichar_Embedding is True:
                                                      vocab=create_static_alphabet.bichar_alphabet.id2words,
                                                      freqs=None, k=args.embed_bichar_dim)
     print("avg handle tha oov words")
-    # bichar_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=bichar_word_vecs,
-    #                                                              vocab=create_static_alphabet.bichar_alphabet.id2words,
-    #                                                              k=args.embed_bichar_dim)
-    bichar_word_vecs = Word_Embedding().add_unknown_words_by_uniform(word_vecs=bichar_word_vecs,
-                                                                     vocab=create_static_alphabet.bichar_alphabet.id2words,
-                                                                     k=args.embed_bichar_dim)
+    bichar_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=bichar_word_vecs,
+                                                                 vocab=create_static_alphabet.bichar_alphabet.id2words,
+                                                                 k=args.embed_bichar_dim)
+    # bichar_word_vecs = Word_Embedding().add_unknown_words_by_uniform(word_vecs=bichar_word_vecs,
+    #                                                                  vocab=create_static_alphabet.bichar_alphabet.id2words,
+    #                                                                  k=args.embed_bichar_dim)
     # print(bichar_word_vecs)
 
 
