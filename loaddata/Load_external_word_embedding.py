@@ -1,6 +1,7 @@
 # coding=utf-8
 import torch
 import random
+import collections
 import numpy as np
 import hyperparams as hy
 torch.manual_seed(hy.seed_num)
@@ -21,6 +22,35 @@ class Word_Embedding():
 
     # load word embedding
     def load_my_vecs(self, path, vocab, freqs, k=None):
+        # word_vecs = {}
+        word_vecs = collections.OrderedDict()
+        with open(path, encoding="utf-8") as f:
+            iov_count = 0
+            words = []
+            lines = f.readlines()[1:]
+            for line in lines:
+                values = line.split(" ")
+                word = values[0]
+                words.append(word)
+
+            for vocab_word in vocab:
+                for words_index, words_word in enumerate(words):
+                    if vocab_word == words_word:
+                        iov_count += 1
+                        values = lines[words_index].split(" ")
+                        vector = []
+                        for count, val in enumerate(values):
+                            if count == 0:
+                                continue
+                            if count <= k:
+                                vector.append(float(val))
+                        word_vecs[vocab_word] = vector
+                        break
+            print("iov count {}".format(iov_count))
+            print("oov count {}".format(len(vocab) - iov_count))
+        return word_vecs
+
+    def load_my_vecs_111(self, path, vocab, freqs, k=None):
         word_vecs = {}
         with open(path, encoding="utf-8") as f:
             count = 0
