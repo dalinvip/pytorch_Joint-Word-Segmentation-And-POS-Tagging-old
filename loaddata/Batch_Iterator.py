@@ -41,7 +41,7 @@ class Iterators():
 
     def convert_word2id(self, insts, operator, operator_static):
         # print(len(insts))
-        for index, inst in enumerate(insts):
+        for index_inst, inst in enumerate(insts):
             # copy with the word and pos
             for index in range(inst.words_size):
                 word = inst.words[index]

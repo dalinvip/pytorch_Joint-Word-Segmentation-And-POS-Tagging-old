@@ -34,25 +34,25 @@ class Decoder_WordLstm(nn.Module):
                                             np.sqrt(6 / (self.args.rnn_hidden_dim + 1)))
 
         self.pos_embed = nn.Embedding(num_embeddings=self.args.pos_size, embedding_dim=self.args.pos_dim)
-        self.pos_embed.weight.requires_grad = True
         init.uniform(self.pos_embed.weight,
                      a=-np.sqrt(3 / self.args.pos_dim),
                      b=np.sqrt(3 / self.args.pos_dim))
+        self.pos_embed.weight.requires_grad = True
 
         self.linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2 + self.args.hidden_size,
                                 out_features=self.args.label_size, bias=False)
 
-        self.non_linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2, out_features=self.args.hidden_size,
-                                    bias=True)
+        # self.non_linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2, out_features=self.args.hidden_size,
+        #                             bias=True)
 
         self.combine_linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2 + self.args.pos_dim,
                                         out_features=self.args.hidden_size, bias=True)
 
         init.xavier_uniform(self.linear.weight)
-        init.xavier_uniform(self.non_linear.weight)
+        # init.xavier_uniform(self.non_linear.weight)
         init.xavier_uniform(self.combine_linear.weight)
-        self.non_linear.bias.data.uniform_(-np.sqrt(6 / (self.args.hidden_size + 1)),
-                                           np.sqrt(6 / (self.args.hidden_size + 1)))
+        # self.non_linear.bias.data.uniform_(-np.sqrt(6 / (self.args.hidden_size + 1)),
+        #                                    np.sqrt(6 / (self.args.hidden_size + 1)))
         self.combine_linear.bias.data.uniform_(-np.sqrt(6 / (self.args.hidden_size + 1)),
                                                np.sqrt(6 / (self.args.hidden_size + 1)))
 
@@ -92,13 +92,14 @@ class Decoder_WordLstm(nn.Module):
                     # print(hidden_now)
 
                     # not use lstm
-                    # v = torch.cat((self.bucket_rnn, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
+                    v = torch.cat((self.bucket_rnn, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
                     # use lstm
-                    v = torch.cat((hidden_now, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
+                    # v = torch.cat((hidden_now, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
                     # print("232", v.size())
                     output = self.linear(v)
                     if id_char is 0:
                         output.data[0][self.args.create_alphabet.appID] = -10e+99
+                    # self.action(state, id_char, encoder_out[id_batch], output, train)
                     self.action(state, id_char, output, hidden_now, cell_now, train)
                     sent_output.append(output)
                 else:
