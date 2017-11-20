@@ -42,17 +42,29 @@ class instance():
 
 class Batch_Features:
     def __init__(self):
+        # self.batch_length = 0
+        # self.inst = None
+        # self.word_features = None
+        # self.pos_features = None
+        # self.char_features = None
+        # self.bichar_left_features = None
+        # self.bichar_right_features = None
+        # self.static_char_features = None
+        # self.static_bichar_left_features = None
+        # self.static_bichar_right_features = None
+        # self.gold_features = None
+
         self.batch_length = 0
         self.inst = None
-        self.word_features = None
-        self.pos_features = None
-        self.char_features = None
-        self.bichar_left_features = None
-        self.bichar_right_features = None
-        self.static_char_features = None
-        self.static_bichar_left_features = None
-        self.static_bichar_right_features = None
-        self.gold_features = None
+        self.word_features = 0
+        self.pos_features = 0
+        self.char_features = 0
+        self.bichar_left_features = 0
+        self.bichar_right_features = 0
+        self.static_char_features = 0
+        self.static_bichar_left_features = 0
+        self.static_bichar_right_features = 0
+        self.gold_features = 0
 
     def cuda(self, features):
         features.word_features = features.word_features.cuda()

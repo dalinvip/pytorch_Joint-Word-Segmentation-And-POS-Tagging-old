@@ -50,7 +50,7 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
         print("optimizer_decoder now lr is {} \n".format(optimizer_decoder.param_groups[0].get("lr")))
 
         # shuffle
-        random.shuffle(train_iter)
+        # random.shuffle(train_iter)
         # random.shuffle(dev_iter)
         # random.shuffle(test_iter)
 

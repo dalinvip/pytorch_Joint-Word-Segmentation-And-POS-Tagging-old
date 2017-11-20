@@ -92,9 +92,9 @@ class Decoder_WordLstm(nn.Module):
                     # print(hidden_now)
 
                     # not use lstm
-                    v = torch.cat((self.bucket_rnn, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
+                    # v = torch.cat((self.bucket_rnn, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
                     # use lstm
-                    # v = torch.cat((hidden_now, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
+                    v = torch.cat((hidden_now, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
                     # print("232", v.size())
                     output = self.linear(v)
                     if id_char is 0:

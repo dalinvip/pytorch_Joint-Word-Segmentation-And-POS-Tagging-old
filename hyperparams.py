@@ -10,15 +10,15 @@ class Hyperparams():
     def __init__(self):
 
         # data path
-        self.train_path = "./pos_test_data/train.ctb60.pos-1.hwc"
-        self.dev_path = "./pos_test_data/dev.ctb60.pos-1.hwc"
-        self.test_path = "./pos_test_data/test.ctb60.pos-1.hwc"
+        # self.train_path = "./pos_test_data/train.ctb60.pos-1.hwc"
+        # self.dev_path = "./pos_test_data/dev.ctb60.pos-1.hwc"
+        # self.test_path = "./pos_test_data/test.ctb60.pos-1.hwc"
         # self.train_path = "./pos_test_data/train.ctb60.pos.hwc"
         # self.dev_path = "./pos_test_data/dev.ctb60.pos.hwc"
         # self.test_path = "./pos_test_data/test.ctb60.pos.hwc"
-        # self.train_path = "./posdata/train.ctb60.pos.hwc"
-        # self.dev_path = "./posdata/dev.ctb60.pos.hwc"
-        # self.test_path = "./posdata/test.ctb60.pos.hwc"
+        self.train_path = "./posdata/train.ctb60.pos.hwc"
+        self.dev_path = "./posdata/dev.ctb60.pos.hwc"
+        self.test_path = "./posdata/test.ctb60.pos.hwc"
 
         self.learning_rate = 0.001
         # self.learning_rate_decay = 0.9   # value is 1 means not change lr
@@ -60,8 +60,8 @@ class Hyperparams():
         # word_Embedding_Path = "./word2vec/glove.840B.300d.handled.Twitter.txt"
         self.char_Embedding = True
         self.char_Embedding_path = "./word_embedding/char.vec"
-        self.bichar_Embedding = True
-        self.bichar_Embedding_Path = "./word_embedding/bichar.vec"
+        self.bichar_Embedding = False
+        self.bichar_Embedding_Path = "./word_embedding/char.vec"
         # self.bichar_Embedding_Path = "./word_embedding/convert_bichar.txt"
         # self.pos_num = None
         self.pos_dim = 100
@@ -77,8 +77,8 @@ class Hyperparams():
         self.init_weight = True
         self.init_weight_value = 6.0
         # L2 weight_decay
-        # self.weight_decay = 1e-9   # default value is zero in Adam SGD
-        self.weight_decay = 0   # default value is zero in Adam SGD
+        self.weight_decay = 1e-8  # default value is zero in Adam SGD
+        # self.weight_decay = 0   # default value is zero in Adam SGD
         # whether to delete the model after test acc so that to save space
         self.rm_model = True
 

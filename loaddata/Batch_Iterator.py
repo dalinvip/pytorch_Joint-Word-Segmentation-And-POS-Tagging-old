@@ -148,17 +148,23 @@ class Iterators():
             if gold_size > max_gold_size:
                 max_gold_size = gold_size
 
-            # create with the Tensor/Variable
-            # word features
-
+        # create with the Tensor/Variable
+        # word features
         batch_word_features = Variable(torch.LongTensor(batch_length, max_word_size))
         batch_pos_features = Variable(torch.LongTensor(batch_length, max_word_size))
+
         batch_char_features = Variable(torch.LongTensor(batch_length, max_char_size))
         batch_bichar_left_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
         batch_bichar_right_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
+
         batch_static_char_features = Variable(torch.LongTensor(batch_length, max_char_size))
         batch_static_bichar_left_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
         batch_static_bichar_right_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
+        # batch_static_bichar_left_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
+        # batch_static_bichar_right_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
+        # batch_static_bichar_left_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
+        # batch_static_bichar_right_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
+
         batch_gold_features = Variable(torch.LongTensor(max_gold_size * batch_length))
 
         # print(batch_gold_features)
@@ -196,11 +202,11 @@ class Iterators():
             for id_bichar_left_index in range(max_bichar_size):
                 if id_bichar_left_index < inst.bichars_size:
                     batch_bichar_left_features.data[id_inst][id_bichar_left_index] = inst.bichars_left_index[id_bichar_left_index]
-                    batch_static_bichar_left_features.data[id_inst][id_bichar_left_index] = inst.static_bichars_left_index[id_bichar_left_index]
+                    batch_static_bichar_left_features.data[id_inst][id_bichar_left_index] = int(inst.static_bichars_left_index[id_bichar_left_index])
                 else:
                     # print("aaa", operator.bichar_PaddingID)
                     batch_bichar_left_features.data[id_inst][id_bichar_left_index] = operator.bichar_PaddingID
-                    batch_static_bichar_left_features.data[id_inst][id_bichar_left_index] = operator_static.bichar_PaddingID
+                    batch_static_bichar_left_features.data[id_inst][id_bichar_left_index] = int(operator_static.bichar_PaddingID)
 
             # copy with the bichar_right features
             for id_bichar_right_index in range(max_bichar_size):
