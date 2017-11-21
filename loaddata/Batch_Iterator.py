@@ -22,8 +22,9 @@ class Iterators():
         self.features = []
         self.data_iter = []
 
-    def createIterator(self, batch_size=1, data=None, operator=None, operator_static=None, args=None):
+    def createIterator(self, batch_size=None, data=None, operator=None, operator_static=None, args=None):
         assert isinstance(data, list), "ERROR: data must be in list [train_data,dev_data]"
+        assert isinstance(batch_size, list), "ERROR: batch_size must be in list [16,1,1]"
         self.args = args
         self.batch_size = batch_size
         self.data = data
@@ -32,7 +33,8 @@ class Iterators():
         for id_data in range(len(data)):
             print("*****************    create {} iterator    **************".format(id_data + 1))
             self.convert_word2id(self.data[id_data], self.operator, self.operator_static)
-            self.features = self.create_onedata_Iterator(insts=self.data[id_data], operator=self.operator,
+            self.features = self.create_onedata_Iterator(insts=self.data[id_data], batch_size=self.batch_size[id_data],
+                                                         operator=self.operator,
                                                          operator_static=self.operator_static)
             self.data_iter.append(self.features)
             self.features = []
@@ -109,16 +111,16 @@ class Iterators():
                 # print("gold ID ", goldID)
                 inst.gold_index.append(goldID)
 
-    def create_onedata_Iterator(self, insts, operator, operator_static):
+    def create_onedata_Iterator(self, insts, batch_size, operator, operator_static):
         batch = []
         count_inst = 0
         for index, inst in enumerate(insts):
             batch.append(inst)
             count_inst += 1
             # print(batch)
-            if len(batch) == self.batch_size or count_inst == len(insts):
+            if len(batch) == batch_size or count_inst == len(insts):
                 # print("aaaa", len(batch))
-                one_batch = self.create_one_batch(insts=batch, batch_size=self.batch_size, operator=operator,
+                one_batch = self.create_one_batch(insts=batch, batch_size=batch_size, operator=operator,
                                                   operator_static=operator_static)
                 self.features.append(one_batch)
                 batch = []

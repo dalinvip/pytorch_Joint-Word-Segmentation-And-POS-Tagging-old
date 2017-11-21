@@ -18,6 +18,7 @@ random.seed(hy.seed_num)
     train function
 """
 
+
 def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
     # if args.use_cuda:
     #     model_encoder = model_encoder.cuda()

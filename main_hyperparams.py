@@ -121,12 +121,13 @@ def dalaloader(args):
     # # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
     # create_alphabet_iter.createAlphabet(train_data=train_data)
 
-    create_static_alphabet = Create_Alphabet(min_freq=args.min_freq, word_min_freq=args.word_min_freq,
-                                             char_min_freq=args.char_min_freq, bichar_min_freq=args.bichar_min_freq)
+    create_static_alphabet = Create_Alphabet(min_freq=args.min_freq, word_min_freq=args.min_freq,
+                                             char_min_freq=args.min_freq, bichar_min_freq=args.min_freq)
     create_static_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
+    # create_static_alphabet.createAlphabet(train_data=train_data)
     # create iterator
     create_iter = Iterators()
-    train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=args.batch_size,
+    train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=[args.batch_size, 1, 1],
                                                                  data=[train_data, dev_data, test_data],
                                                                  # operator=create_static_alphabet, args=args)
                                                                  operator=create_alphabet,
@@ -143,11 +144,11 @@ train_iter, dev_iter, test_iter, create_alphabet, create_static_alphabet = dalal
 
 if args.char_Embedding is True:
     print("loading char embedding.......")
-    char_word_vecs = Word_Embedding().load_my_vecs(path=args.char_Embedding_path,
-                                                   vocab=create_static_alphabet.char_alphabet.id2words,
-                                                   freqs=None, k=args.embed_char_dim)
+    char_word_vecs_dict = Word_Embedding().load_my_vecs(path=args.char_Embedding_path,
+                                                        vocab=create_static_alphabet.char_alphabet.id2words,
+                                                        freqs=None, k=args.embed_char_dim)
     print("avg handle tha oov words")
-    char_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=char_word_vecs,
+    char_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=char_word_vecs_dict,
                                                                vocab=create_static_alphabet.char_alphabet.id2words,
                                                                k=args.embed_char_dim)
     # char_word_vecs = Word_Embedding().add_unknown_words_by_uniform(word_vecs=char_word_vecs,
@@ -157,11 +158,11 @@ if args.char_Embedding is True:
 
 if args.bichar_Embedding is True:
     print("loading bichar embedding.......")
-    bichar_word_vecs = Word_Embedding().load_my_vecs(path=args.bichar_Embedding_Path,
-                                                     vocab=create_static_alphabet.bichar_alphabet.id2words,
-                                                     freqs=None, k=args.embed_bichar_dim)
+    bichar_word_vecs_dict = Word_Embedding().load_my_vecs(path=args.bichar_Embedding_Path,
+                                                          vocab=create_static_alphabet.bichar_alphabet.id2words,
+                                                          freqs=None, k=args.embed_bichar_dim)
     print("avg handle tha oov words")
-    bichar_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=bichar_word_vecs,
+    bichar_word_vecs = Word_Embedding().add_unknown_words_by_avg(word_vecs=bichar_word_vecs_dict,
                                                                  vocab=create_static_alphabet.bichar_alphabet.id2words,
                                                                  k=args.embed_bichar_dim)
     # bichar_word_vecs = Word_Embedding().add_unknown_words_by_uniform(word_vecs=bichar_word_vecs,
