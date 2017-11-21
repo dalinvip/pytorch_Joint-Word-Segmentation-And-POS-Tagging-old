@@ -43,7 +43,8 @@ class Iterators():
 
     def convert_word2id(self, insts, operator, operator_static):
         # print(len(insts))
-        for index_inst, inst in enumerate(insts):
+        # for index_inst, inst in enumerate(insts):
+        for inst in insts:
             # copy with the word and pos
             for index in range(inst.words_size):
                 word = inst.words[index]
@@ -136,7 +137,7 @@ class Iterators():
         max_bichar_size = -1
         max_gold_size = -1
         max_pos_size = -1
-        for _, inst in enumerate(insts):
+        for inst in insts:
             word_size = inst.words_size
             if word_size > max_word_size:
                 max_word_size = word_size

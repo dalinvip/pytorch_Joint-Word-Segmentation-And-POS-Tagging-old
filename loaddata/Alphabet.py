@@ -36,19 +36,29 @@ class Create_Alphabet():
         self.label_alphabet = Alphabet(min_freq=min_freq)
 
         # unkid
-        self.word_UnkkID = None
-        self.char_UnkID = None
-        self.bichar_UnkID = None
-        self.pos_UnkID = None
+        # self.word_UnkkID = None
+        # self.char_UnkID = None
+        # self.bichar_UnkID = None
+        # self.pos_UnkID = None
+        self.word_UnkkID = 0
+        self.char_UnkID = 0
+        self.bichar_UnkID = 0
+        self.pos_UnkID = 0
 
         # paddingid
-        self.word_PaddingID = None
-        self.char_PaddingID = None
-        self.bichar_PaddingID = None
-        self.pos_PaddingID = None
+        # self.word_PaddingID = None
+        # self.char_PaddingID = None
+        # self.bichar_PaddingID = None
+        # self.pos_PaddingID = None
+        self.word_PaddingID = 0
+        self.char_PaddingID = 0
+        self.bichar_PaddingID = 0
+        self.pos_PaddingID = 0
 
-        self.appID = None
-        self.sepID = None
+        # self.appID = None
+        # self.sepID = None
+        self.appID = 0
+        self.sepID = 0
 
     def createAlphabet(self, train_data=None, dev_data=None, test_data=None, debug_index=-1):
         print("create Alphabet start...... ! ")

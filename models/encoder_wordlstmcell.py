@@ -103,7 +103,9 @@ class Encoder_WordLstm(nn.Module):
         # print("Encoder forward")
         # batch_length = features.char_features.size(0)
         batch_length = features.batch_length
-        char_features_num = features.char_features.size(1)
+        # char_features_num = features.char_features.size(1)
+        char_features_num = features.static_char_features.size(1)
+        # print("char_features_num {}".format(char_features_num))
         # fine tune
         # print(features.char_features)
         char_features = self.char_embed(features.char_features)
@@ -136,11 +138,11 @@ class Encoder_WordLstm(nn.Module):
         # print(right_concat.size())
 
         # non-linear
-        left_concat = self.dropout(F.tanh(self.liner(left_concat)))
+        left_concat_non_linear = self.dropout(F.tanh(self.liner(left_concat)))
         # left_concat = left_concat.view(batch_length, char_features_num, self.args.rnn_hidden_dim)
-        left_concat = left_concat.permute(1, 0, 2)
-        right_concat = self.dropout(F.tanh(self.liner(right_concat)))
-        right_concat = right_concat.permute(1, 0, 2)
+        left_concat_input = left_concat_non_linear.permute(1, 0, 2)
+        right_concat_non_linear = self.dropout(F.tanh(self.liner(right_concat)))
+        right_concat_input = right_concat_non_linear.permute(1, 0, 2)
         # right_concat = right_concat.view(batch_length, char_features_num, self.args.rnn_hidden_dim)
         # print(batch_length)
         self.hidden_l = self.init_hidden_cell(batch_length)
@@ -148,7 +150,7 @@ class Encoder_WordLstm(nn.Module):
         # print(left_c)
         left_lstm_output = []
         for idx in range(char_features_num):
-            left_h, left_c = self.lstm_left(left_concat[idx], self.hidden_l)
+            left_h, left_c = self.lstm_left(left_concat_input[idx], self.hidden_l)
             left_h = self.dropout(left_h)
             left_lstm_output.append(left_h.view(batch_length, 1, self.args.rnn_hidden_dim))
         left_lstm_output = torch.cat(left_lstm_output, 1)
@@ -157,7 +159,7 @@ class Encoder_WordLstm(nn.Module):
         right_lstm_output = []
         for idx in reversed(range(char_features_num)):
             # print(idx)
-            right_h, right_c = self.lstm_right(right_concat[idx], self.hidden_r)
+            right_h, right_c = self.lstm_right(right_concat_input[idx], self.hidden_r)
             right_h = self.dropout(right_h)
             right_lstm_output.insert(0, right_h.view(batch_length, 1, self.args.rnn_hidden_dim))
         right_lstm_output = torch.cat(right_lstm_output, 1)

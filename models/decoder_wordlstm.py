@@ -78,7 +78,8 @@ class Decoder_WordLstm(nn.Module):
         # print(encoder_out.size())
         # print("Decoder forward")
         batch_length = features.batch_length
-        char_features_num = features.char_features.size(1)
+        # char_features_num = features.char_features.size(1)
+        char_features_num = encoder_out.size(1)
         batch_output = []
         batch_state = []
         for id_batch in range(batch_length):
@@ -98,6 +99,7 @@ class Decoder_WordLstm(nn.Module):
                     # print("232", v.size())
                     output = self.linear(v)
                     if id_char is 0:
+                        # print("oooooo")
                         output.data[0][self.args.create_alphabet.appID] = -10e+99
                     # self.action(state, id_char, encoder_out[id_batch], output, train)
                     self.action(state, id_char, output, hidden_now, cell_now, train)
