@@ -1,7 +1,6 @@
 
 class state_instance:
     def __init__(self, inst):
-        # self.hyperParams = hyperParams
         self.chars = inst.chars
         self.gold = inst.gold
         self.words = []

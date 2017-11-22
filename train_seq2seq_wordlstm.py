@@ -26,6 +26,8 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
 
     if args.Adam is True:
         print("Adam Training......")
+        model_encoder_parameters = filter(lambda p: p.requires_grad, model_encoder.parameters())
+        model_decoder_parameters = filter(lambda p: p.requires_grad, model_decoder.parameters())
         optimizer_encoder = torch.optim.Adam(params=filter(lambda p: p.requires_grad, model_encoder.parameters()),
                                              lr=args.lr,
                                              weight_decay=args.init_weight_decay)
@@ -78,8 +80,10 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             loss.backward()
 
             if args.init_clip_max_norm is not None:
-                utils.clip_grad_norm(model_encoder.parameters(), max_norm=args.init_clip_max_norm)
-                utils.clip_grad_norm(model_decoder.parameters(), max_norm=args.init_clip_max_norm)
+                # utils.clip_grad_norm(model_encoder.parameters(), max_norm=args.init_clip_max_norm)
+                # utils.clip_grad_norm(model_decoder.parameters(), max_norm=args.init_clip_max_norm)
+                utils.clip_grad_norm(model_encoder_parameters, max_norm=args.init_clip_max_norm)
+                utils.clip_grad_norm(model_decoder_parameters, max_norm=args.init_clip_max_norm)
 
             optimizer_encoder.step()
             optimizer_decoder.step()
@@ -88,8 +92,8 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             if steps % args.log_interval == 0:
                 # print("batch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%\r".format(
                 #     batch_count+1, loss.data[0], correct, total_num, train_acc*100))
-                sys.stdout.write("\rbatch_count = [{}] , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%".format(
-                    batch_count+1, loss.data[0], correct, total_num, train_acc*100))
+                sys.stdout.write("\rbatch_count = [{}] , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = "
+                                 "{:.6f}%".format(batch_count+1, loss.data[0], correct, total_num, train_acc*100))
             if steps % args.dev_interval == 0:
                 print("\ndev F-score")
                 dev_eval_pos.clear()
@@ -146,6 +150,7 @@ def jointPRF(inst, state, seg_eval, pos_eval):
         predict_seg.append('[' + str(count) + ',' + str(count + len(w)) + ']')
         predict_pos.append('[' + str(count) + ',' + str(count + len(w)) + ']' + posLabel)
         count += len(w)
+
     seg_eval.gold_num += len(inst.gold_seg)
     seg_eval.predict_num += len(predict_seg)
     for p in predict_seg:
@@ -177,7 +182,7 @@ def eval(data_iter, model_encoder, model_decoder, args, eval_seg, eval_pos):
     loss = 0
     # eval_seg = Eval()
     # eval_pos = Eval()
-    for batch_count, batch_features in enumerate(data_iter):
+    for batch_features in data_iter:
         encoder_out = model_encoder(batch_features)
         decoder_out, state, decoder_out_acc = model_decoder(batch_features, encoder_out, train=False)
         for i in range(batch_features.batch_length):

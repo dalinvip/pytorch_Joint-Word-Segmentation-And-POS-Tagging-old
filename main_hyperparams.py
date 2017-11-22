@@ -42,7 +42,9 @@ parser = argparse.ArgumentParser(description="word seg and pos tag")
 parser.add_argument('-lr', type=float, default=hyperparams.learning_rate, help='initial learning rate [default: 0.001]')
 parser.add_argument('-learning_rate_decay', type=float, default=hyperparams.learning_rate_decay, help='initial learning_rate_decay rate [default: 0.001]')
 parser.add_argument('-epochs', type=int, default=hyperparams.epochs, help='number of epochs for train [default: 256]')
-parser.add_argument('-batch-size', type=int, default=hyperparams.batch_size, help='batch size for training [default: 64]')
+parser.add_argument('-batch-size', type=int, default=hyperparams.train_batch_size, help='batch size for training [default: 64]')
+parser.add_argument('-dev-batch-size', type=int, default=hyperparams.dev_batch_size, help='batch size for training [default: 64]')
+parser.add_argument('-test-batch-size', type=int, default=hyperparams.test_batch_size, help='batch size for training [default: 64]')
 parser.add_argument('-log-interval',  type=int, default=hyperparams.log_interval,   help='how many steps to wait before logging training status [default: 1]')
 parser.add_argument('-dev-interval', type=int, default=hyperparams.dev_interval, help='how many steps to wait before testing [default: 100]')
 parser.add_argument('-test-interval', type=int, default=hyperparams.test_interval, help='how many steps to wait before saving [default:500]')
@@ -127,7 +129,8 @@ def dalaloader(args):
     # create_static_alphabet.createAlphabet(train_data=train_data)
     # create iterator
     create_iter = Iterators()
-    train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=[args.batch_size, 1, 1],
+    train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=[args.batch_size, args.dev_batch_size,
+                                                                             args.test_batch_size],
                                                                  data=[train_data, dev_data, test_data],
                                                                  # operator=create_static_alphabet, args=args)
                                                                  operator=create_alphabet,

@@ -24,7 +24,9 @@ class Hyperparams():
         # self.learning_rate_decay = 0.9   # value is 1 means not change lr
         self.learning_rate_decay = 1   # value is 1 means not change lr
         self.epochs = 2000
-        self.batch_size = 16
+        self.train_batch_size = 16
+        self.dev_batch_size = 1
+        self.test_batch_size = 1
         self.log_interval = 1
         self.dev_interval = 4000000
         self.test_interval = 4000000
