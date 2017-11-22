@@ -28,10 +28,12 @@ class Encoder_WordLstm(nn.Module):
         for index in range(self.args.embed_char_dim):
             self.char_embed.weight.data[self.args.create_alphabet.char_PaddingID][index] = 0
         self.char_embed.weight.requires_grad = True
+
         self.bichar_embed = nn.Embedding(self.args.embed_bichar_num, self.args.embed_bichar_dim)
         for index in range(self.args.embed_bichar_dim):
             self.bichar_embed.weight.data[self.args.create_alphabet.bichar_PaddingID][index] = 0
         self.bichar_embed.weight.requires_grad = True
+
         # fix the word embedding
         self.static_char_embed = nn.Embedding(self.args.static_embed_char_num, self.args.embed_char_dim)
         init.uniform(self.static_char_embed.weight, a=-np.sqrt(3 / self.args.embed_char_dim),
@@ -69,7 +71,7 @@ class Encoder_WordLstm(nn.Module):
         init.xavier_uniform(self.lstm_left.weight_hh)
         init.xavier_uniform(self.lstm_right.weight_ih)
         init.xavier_uniform(self.lstm_right.weight_hh)
-        value = np.sqrt(6 / self.args.rnn_hidden_dim + 1)
+        value = np.sqrt(6 / (self.args.rnn_hidden_dim + 1))
         self.lstm_left.bias_hh.data.uniform_(-value, value)
         self.lstm_left.bias_ih.data.uniform_(-value, value)
         self.lstm_right.bias_hh.data.uniform_(-value, value)
@@ -86,7 +88,7 @@ class Encoder_WordLstm(nn.Module):
 
         # init linear
         init.xavier_uniform(self.liner.weight)
-        init_linear_value = np.sqrt(6 / self.args.hidden_size + 1)
+        init_linear_value = np.sqrt(6 / (self.args.hidden_size + 1))
         self.liner.bias.data.uniform_(-init_linear_value, init_linear_value)
 
     def init_hidden_cell(self, batch_size=1):
