@@ -101,6 +101,14 @@ class Encoder_WordLstm(nn.Module):
             return (Variable(torch.zeros(batch_size, self.args.rnn_hidden_dim)),
                     Variable(torch.zeros(batch_size, self.args.rnn_hidden_dim)))
 
+    def init_cell_hidden(self, batch=1):
+        if self.args.use_cuda is True:
+            return (torch.autograd.Variable(torch.zeros(batch, self.args.rnn_hidden_dim)).cuda(),
+                    torch.autograd.Variable(torch.zeros(batch, self.args.rnn_hidden_dim)).cuda())
+        else:
+            return (torch.autograd.Variable(torch.zeros(batch, self.args.rnn_hidden_dim)),
+                    torch.autograd.Variable(torch.zeros(batch, self.args.rnn_hidden_dim)))
+
     def forward(self, features):
         # print("Encoder forward")
         # batch_length = features.char_features.size(0)
@@ -119,6 +127,8 @@ class Encoder_WordLstm(nn.Module):
         # fix the word embedding
         static_char_features = self.static_char_embed(features.static_char_features)
         static_bichar_l_features = self.static_bichar_embed(features.static_bichar_left_features)
+        static_bichar_left_features_index = features.static_bichar_left_features
+        aa = self.static_bichar_embed(static_bichar_left_features_index)
         static_bichar_r_features = self.static_bichar_embed(features.static_bichar_right_features)
 
         # dropout
@@ -147,22 +157,27 @@ class Encoder_WordLstm(nn.Module):
         right_concat_input = right_concat_non_linear.permute(1, 0, 2)
         # right_concat = right_concat.view(batch_length, char_features_num, self.args.rnn_hidden_dim)
         # print(batch_length)
-        self.hidden_l = self.init_hidden_cell(batch_length)
+        # self.hidden_l = self.init_hidden_cell(batch_length)
+        left_h, left_c = self.init_cell_hidden(batch_length)
         # print(left_h)
         # print(left_c)
         left_lstm_output = []
         for idx in range(char_features_num):
-            left_h, left_c = self.lstm_left(left_concat_input[idx], self.hidden_l)
+            # left_h, left_c = self.lstm_left(left_concat_input[idx], self.hidden_l)
+            left_h, left_c = self.lstm_left(left_concat_input[idx], (left_h, left_c))
             left_h = self.dropout(left_h)
             left_lstm_output.append(left_h.view(batch_length, 1, self.args.rnn_hidden_dim))
         left_lstm_output = torch.cat(left_lstm_output, 1)
 
-        self.hidden_r = self.init_hidden_cell(batch_length)
+        # self.hidden_r = self.init_hidden_cell(batch_length)
+        right_h, right_c = self.init_cell_hidden(batch_length)
         right_lstm_output = []
         for idx in reversed(range(char_features_num)):
             # print(idx)
-            right_h, right_c = self.lstm_right(right_concat_input[idx], self.hidden_r)
+            # right_h, right_c = self.lstm_right(right_concat_input[idx], self.hidden_r)
+            right_h, right_c = self.lstm_right(right_concat_input[idx], (right_h, right_c))
             right_h = self.dropout(right_h)
+            # right_lstm_output.insert(0, right_h.view(batch_length, 1, self.args.rnn_hidden_dim))
             right_lstm_output.insert(0, right_h.view(batch_length, 1, self.args.rnn_hidden_dim))
         right_lstm_output = torch.cat(right_lstm_output, 1)
 

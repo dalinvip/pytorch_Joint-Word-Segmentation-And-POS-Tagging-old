@@ -43,6 +43,7 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
     model_encoder.train()
     model_decoder.train()
     time_list = []
+    train_eval = Eval()
     dev_eval_seg = Eval()
     dev_eval_pos = Eval()
     test_eval_seg = Eval()
@@ -69,14 +70,21 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             model_decoder.zero_grad()
 
             # print(batch_features.cuda())
+            maxCharSize = batch_features.char_features.size()[1]
             encoder_out = model_encoder(batch_features)
             decoder_out, state, decoder_out_acc = model_decoder(batch_features, encoder_out, train=True)
             # print(decoder_out.size())
-            # cal the acc
-            # decoder_out_acc =
-            train_acc, correct, total_num = cal_train_acc(batch_features, batch_count, decoder_out_acc, args)
-            # loss = F.nll_loss(decoder_out, batch_features.gold_features)
-            # loss = F.cross_entropy(decoder_out, batch_features.gold_features)
+
+            train_eval.clear()
+            for idx in range(batch_features.batch_length):
+                inst = batch_features.inst[idx]
+                for idy in range(inst.chars_size):
+                    actionID = getMaxindex(decoder_out[idx * maxCharSize + idy], args)
+                    if actionID == inst.gold_index[idy]:
+                        train_eval.correct_num += 1
+                train_eval.gold_num += inst.chars_size
+            # loss = torch.nn.functional.nll_loss(decoder_out, batch_features.gold_features)
+
             loss = torch.nn.functional.nll_loss(decoder_out, batch_features.gold_features)
             # print("loss {}".format(loss.data[0]))
 
@@ -96,35 +104,45 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
                 # print("batch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%\r".format(
                 #     batch_count+1, loss.data[0], correct, total_num, train_acc*100))
                 sys.stdout.write("\rbatch_count = [{}] , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = "
-                                 "{:.6f}%".format(batch_count+1, loss.data[0], correct, total_num, train_acc*100))
-            if steps % args.dev_interval == 0:
-                print("\ndev F-score")
-                dev_eval_pos.clear()
-                dev_eval_seg.clear()
-                eval(dev_iter, model_encoder, model_decoder, args, dev_eval_seg, dev_eval_pos)
-                # model_encoder.train()
-                # model_decoder.train()
-            if steps % args.test_interval == 0:
-                print("test F-score")
-                test_eval_pos.clear()
-                test_eval_seg.clear()
-                eval(test_iter, model_encoder, model_decoder, args, test_eval_seg, test_eval_pos)
-                print("\n")
+                                 "{:.6f}%".format(batch_count+1, loss.data[0], train_eval.correct_num,
+                                                  train_eval.gold_num, train_eval.acc() * 100))
+
         model_encoder.eval()
         model_decoder.eval()
         if steps is not 0:
             print("\none epoch dev F-score")
             dev_eval_pos.clear()
             dev_eval_seg.clear()
-            eval(dev_iter, model_encoder, model_decoder, args, dev_eval_seg, dev_eval_pos)
+            for idx in range(len(dev_iter)):
+                inst = dev_iter[idx]
+                if inst.batch_length is not 1:
+                    print("dev one by one")
+                    exit()
+                encoder_out = model_encoder(inst)
+                decoder_out, state, decoder_out_acc = model_decoder(inst, encoder_out, train=False)
+                jointPRF(inst.inst[0], state[0], dev_eval_seg, dev_eval_pos)
+            p, r, f = dev_eval_seg.getFscore()
+            print('seg dev: precision = ', str(p), '%, recall = ', str(r), '%, f-score = ', str(f), "%")
+            p, r, f = dev_eval_pos.getFscore()
+            print('pos dev: precision = ', str(p), '%, recall = ', str(r), '%, f-score = ', str(f), "%")
             # model_encoder.train()
             # model_decoder.train()
         if steps is not 0:
             print("one epoch test F-score")
             test_eval_pos.clear()
             test_eval_seg.clear()
-            eval(test_iter, model_encoder, model_decoder, args, test_eval_seg, test_eval_pos)
-            print("\n")
+            for idx in range(len(test_iter)):
+                inst = test_iter[idx]
+                if inst.batch_length is not 1:
+                    print("test one by one")
+                    exit()
+                encoder_out = model_encoder(inst)
+                decoder_out, state, decoder_out_acc = model_decoder(inst, encoder_out, train=False)
+                jointPRF(inst.inst[0], state[0], test_eval_seg, test_eval_pos)
+            p, r, f = dev_eval_seg.getFscore()
+            print('seg test: precision = ', str(p), '%, recall = ', str(r), '%, f-score = ', str(f), "%")
+            p, r, f = dev_eval_pos.getFscore()
+            print('pos test: precision = ', str(p), '%, recall = ', str(r), '%, f-score = ', str(f), "%")
 
 
 def cal_train_acc(batch_features, batch_count, decode_out_acc, args):
