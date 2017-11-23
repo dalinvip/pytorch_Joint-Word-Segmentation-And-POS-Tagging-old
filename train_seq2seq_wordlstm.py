@@ -43,6 +43,7 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
     model_encoder.train()
     model_decoder.train()
     time_list = []
+    train_eval = Eval()
     dev_eval_seg = Eval()
     dev_eval_pos = Eval()
     test_eval_seg = Eval()
@@ -69,12 +70,13 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             model_decoder.zero_grad()
 
             # print(batch_features.cuda())
+            maxCharSize = batch_features.char_features.size()[1]
             encoder_out = model_encoder(batch_features)
             decoder_out, state, decoder_out_acc = model_decoder(batch_features, encoder_out, train=True)
             # print(decoder_out.size())
             # cal the acc
             # decoder_out_acc =
-            train_acc, correct, total_num = cal_train_acc(batch_features, batch_count, decoder_out_acc, args)
+            cal_train_acc(batch_features, train_eval, batch_count, decoder_out, maxCharSize, args)
             # loss = F.nll_loss(decoder_out, batch_features.gold_features)
             # loss = F.cross_entropy(decoder_out, batch_features.gold_features)
             loss = torch.nn.functional.nll_loss(decoder_out, batch_features.gold_features)
@@ -93,10 +95,9 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
 
             steps += 1
             if steps % args.log_interval == 0:
-                # print("batch_count = {} , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = {:.6f}%\r".format(
-                #     batch_count+1, loss.data[0], correct, total_num, train_acc*100))
                 sys.stdout.write("\rbatch_count = [{}] , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = "
-                                 "{:.6f}%".format(batch_count+1, loss.data[0], correct, total_num, train_acc*100))
+                                 "{:.6f}%".format(batch_count + 1, loss.data[0], train_eval.correct_num,
+                                                  train_eval.gold_num, train_eval.acc() * 100))
             if steps % args.dev_interval == 0:
                 print("\ndev F-score")
                 dev_eval_pos.clear()
@@ -127,19 +128,32 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             print("\n")
 
 
-def cal_train_acc(batch_features, batch_count, decode_out_acc, args):
+
+def cal_train_acc(batch_features, train_eval, batch_count, decoder_out, maxCharSize, args):
     # print("calculate the acc of train ......")
-    correct = 0
-    total_num = 0
-    for index in range(batch_features.batch_length):
-        inst = batch_features.inst[index]
-        for char_index in range(inst.chars_size):
-            max_index = getMaxindex(decode_out_acc[index][char_index], args)
-            if max_index == inst.gold_index[char_index]:
-                correct += 1
-        total_num += inst.chars_size
-    acc = correct / total_num
-    return acc, correct, total_num
+    train_eval.clear()
+    for id_batch in range(batch_features.batch_length):
+        inst = batch_features.inst[id_batch]
+        for id_char in range(inst.chars_size):
+            actionID = getMaxindex(decoder_out[id_batch * maxCharSize + id_char], args)
+            if actionID == inst.gold_index[id_char]:
+                train_eval.correct_num += 1
+        train_eval.gold_num += inst.chars_size
+
+#
+# def cal_train_acc(batch_features, batch_count, decode_out, maxCharSize, args):
+#     # print("calculate the acc of train ......")
+#     correct = 0
+#     total_num = 0
+#     for index in range(batch_features.batch_length):
+#         inst = batch_features.inst[index]
+#         for char_index in range(inst.chars_size):
+#             max_index = getMaxindex(decode_out[index][char_index], args)
+#             if max_index == inst.gold_index[char_index]:
+#                 correct += 1
+#         total_num += inst.chars_size
+#     acc = correct / total_num
+#     return acc, correct, total_num
 
 
 def jointPRF(inst, state, seg_eval, pos_eval):
