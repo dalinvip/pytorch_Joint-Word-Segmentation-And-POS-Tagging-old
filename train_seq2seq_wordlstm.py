@@ -107,18 +107,18 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
         time_list.append(end_time - start_time)
         if time_list is not None:
             avg_time = sum(time_list) / len(time_list)
-            print("avg epoch time {}".format(avg_time))
+            print("{} - {} epoch avg  time {}".format(1, epoch, avg_time))
         model_encoder.eval()
         model_decoder.eval()
         if steps is not 0:
-            print("\none epoch dev F-score")
+            print("\n{} epoch dev F-score".format(epoch))
             dev_eval_pos.clear()
             dev_eval_seg.clear()
             eval(dev_iter, model_encoder, model_decoder, args, dev_eval_seg, dev_eval_pos)
             # model_encoder.train()
             # model_decoder.train()
         if steps is not 0:
-            print("one epoch test F-score")
+            print("{} epoch test F-score".format(epoch))
             test_eval_pos.clear()
             test_eval_seg.clear()
             eval(test_iter, model_encoder, model_decoder, args, test_eval_seg, test_eval_pos)

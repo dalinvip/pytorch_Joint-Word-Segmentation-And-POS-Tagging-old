@@ -3,6 +3,7 @@ import torch
 import random
 import collections
 import numpy as np
+import tqdm as tqdm
 import hyperparams as hy
 torch.manual_seed(hy.seed_num)
 random.seed(hy.seed_num)
@@ -17,9 +18,6 @@ class Word_Embedding():
         print("loading external word embedding")
         self.test = 0
 
-    def test(self):
-        print(self.test)
-
     # load word embedding
     def load_my_vecs(self, path, vocab, freqs, k=None):
         # word_vecs = {}
@@ -27,13 +25,31 @@ class Word_Embedding():
         with open(path, encoding="utf-8") as f:
             iov_count = 0
             words = []
-            lines = f.readlines()[1:]
-            for line in lines:
+            lines = f.readlines()
+            try:
+                word_embedding_dim = int(lines[0])
+            except:
+                print("ERROR: the word embedding file first line must be dim")
+                exit()
+
+            # lines_pbar = tqdm.tqdm(lines[1:])
+            lines_pbar = tqdm.tqdm(lines)
+            # for line in lines[1:]:
+            # for line, line_pbar in zip(lines, lines_pbar):
+            for line in lines_pbar:
+                lines_pbar.set_description("Processing")
                 values = line.split(" ")
                 word = values[0]
+                # if word in words:
+                #     continue
                 words.append(word)
 
-            for vocab_word in vocab:
+
+            vocabs_pbar = tqdm.tqdm(vocab)
+            # for vocab_word in vocab:
+            # for vocab_word, vocab_pbar in zip(vocab, vocabs_pbar):
+            for vocab_word in vocabs_pbar:
+                vocabs_pbar.set_description("Processing")
                 for words_index, words_word in enumerate(words):
                     if vocab_word == words_word:
                         iov_count += 1
@@ -54,8 +70,13 @@ class Word_Embedding():
         word_vecs = {}
         with open(path, encoding="utf-8") as f:
             count = 0
-            lines = f.readlines()[1:]
-            for line in lines:
+            lines = f.readlines()
+            try:
+                word_embedding_dim = int(lines[0])
+            except:
+                print("ERROR: the word embedding file first line must be dim")
+                exit()
+            for line in lines[1:]:
                 values = line.split(" ")
                 word = values[0]
                 # word = word.lower()
