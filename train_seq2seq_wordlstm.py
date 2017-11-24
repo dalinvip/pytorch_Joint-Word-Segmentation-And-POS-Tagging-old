@@ -20,9 +20,6 @@ random.seed(hy.seed_num)
 
 
 def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
-    # if args.use_cuda:
-    #     model_encoder = model_encoder.cuda()
-    #     model_decoder = model_decoder.cuda()
 
     if args.Adam is True:
         print("Adam Training......")
@@ -53,6 +50,9 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
         print("optimizer_encoder now lr is {}".format(optimizer_encoder.param_groups[0].get("lr")))
         print("optimizer_decoder now lr is {} \n".format(optimizer_decoder.param_groups[0].get("lr")))
 
+        # train time
+        start_time = time.time()
+
         # shuffle
         random.shuffle(train_iter)
         # random.shuffle(dev_iter)
@@ -62,31 +62,21 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
         model_decoder.train()
 
         for batch_count, batch_features in enumerate(train_iter):
-            # print("batch_count", batch_count)
-            # print(batch_features)
-            # print(batch_features.inst[batch_count].chars)
-            # print(batch_features.batch_length)
+
             model_encoder.zero_grad()
             model_decoder.zero_grad()
 
-            # print(batch_features.cuda())
             maxCharSize = batch_features.char_features.size()[1]
             encoder_out = model_encoder(batch_features)
             decoder_out, state, decoder_out_acc = model_decoder(batch_features, encoder_out, train=True)
-            # print(decoder_out.size())
-            # cal the acc
-            # decoder_out_acc =
+
             cal_train_acc(batch_features, train_eval, batch_count, decoder_out, maxCharSize, args)
-            # loss = F.nll_loss(decoder_out, batch_features.gold_features)
-            # loss = F.cross_entropy(decoder_out, batch_features.gold_features)
+
             loss = torch.nn.functional.nll_loss(decoder_out, batch_features.gold_features)
-            # print("loss {}".format(loss.data[0]))
 
             loss.backward()
 
             if args.init_clip_max_norm is not None:
-                # utils.clip_grad_norm(model_encoder.parameters(), max_norm=args.init_clip_max_norm)
-                # utils.clip_grad_norm(model_decoder.parameters(), max_norm=args.init_clip_max_norm)
                 utils.clip_grad_norm(model_encoder_parameters, max_norm=args.init_clip_max_norm)
                 utils.clip_grad_norm(model_decoder_parameters, max_norm=args.init_clip_max_norm)
 
@@ -111,6 +101,13 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
                 test_eval_seg.clear()
                 eval(test_iter, model_encoder, model_decoder, args, test_eval_seg, test_eval_pos)
                 print("\n")
+        # train time
+        end_time = time.time()
+        print("\ntrain time cost: ", end_time - start_time, 's')
+        time_list.append(end_time - start_time)
+        if time_list is not None:
+            avg_time = sum(time_list) / len(time_list)
+            print("avg epoch time {}".format(avg_time))
         model_encoder.eval()
         model_decoder.eval()
         if steps is not 0:
@@ -126,7 +123,6 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             test_eval_seg.clear()
             eval(test_iter, model_encoder, model_decoder, args, test_eval_seg, test_eval_pos)
             print("\n")
-
 
 
 def cal_train_acc(batch_features, train_eval, batch_count, decoder_out, maxCharSize, args):
@@ -195,10 +191,8 @@ def getMaxindex(decode_out_acc, args):
 
 
 def eval(data_iter, model_encoder, model_decoder, args, eval_seg, eval_pos):
-    # print("eval function")
-    # model_encoder.eval()
-    # model_decoder.eval()
-    loss = 0
+    # eval time
+    eval_start = time.time()
     # eval_seg = Eval()
     # eval_pos = Eval()
     for batch_features in data_iter:
@@ -206,17 +200,15 @@ def eval(data_iter, model_encoder, model_decoder, args, eval_seg, eval_pos):
         decoder_out, state, decoder_out_acc = model_decoder(batch_features, encoder_out, train=False)
         for i in range(batch_features.batch_length):
             jointPRF(batch_features.inst[i], state[i], eval_seg, eval_pos)
-        # batch_features.inst
-        # decoder_out, decoder_out_acc = model_decoder(batch_features, encoder_out)
-        # loss = F.cross_entropy(decoder_out, batch_features.gold_features, size_average=False)
-        # print(loss.data[0])
-        # cal_pre_fscore(batch_features, decoder_out_acc, args, eval_seg, eval_pos)
+    # calculate the time
+    print("eval time cost: ", time.time() - eval_start, 's')
 
+    # calculate the F-Score
     p, r, f = eval_seg.getFscore()
     # print("\n")
-    print("seg dev: precision = {}%  recall = {}% , f-score = {}%".format(p, r, f))
+    print("seg: precision = {}%  recall = {}% , f-score = {}%".format(p, r, f))
     p, r, f = eval_pos.getFscore()
-    print("pos dev: precision = {}%  recall = {}% , f-score = {}%".format(p, r, f))
+    print("pos: precision = {}%  recall = {}% , f-score = {}%\n".format(p, r, f))
     # print("\n")
 
     # model_encoder.train()
