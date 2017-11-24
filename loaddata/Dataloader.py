@@ -22,14 +22,6 @@ class load_data():
         self.debug_index = -1
         self.path = path
         self.date_list = []
-        # self.shuffle = shuffle
-        # print(len(self.path))
-        # print(self.path)
-        # self.return_mul_data()
-        # print(self.path.size)
-        # print(self.date_list[0])
-        # print(self.date_list[1])
-        # print("asdasd", self.date_list)
 
     def clean_str(self, string):
         """
@@ -115,7 +107,6 @@ class load_data():
             print("shuffle tha data......")
             random.shuffle(insts)
         # return all sentence in data
-        # print(insts[-1].words)
         return insts
 
 
@@ -126,12 +117,4 @@ if __name__ == "__main__":
     #                             "../pos_test_data/test.ctb60.pos.hwc"), shuffle=True)
     train_data, dev_data, test_data = loaddata.load_data(path=["../pos_test_data/train.ctb60.pos-1.hwc", "../pos_test_data/train.ctb60.pos-1.hwc"
         , "../pos_test_data/train.ctb60.pos-1.hwc"], shuffle=True)
-    # print("\n\n\n\n")
-    # print(train_data)
-    # print("\n\n\n\n")
-    # print(dev_data)
-    # print("\n\n\n\n")
-    # print(test_data)
-    # create_alphabet = Create_Alphabet(min_freq=1)
-    # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data, debug_index=-1)
-    # load_data.loaddate("../pos_test_data/test.ctb60.pos.hwc")
+

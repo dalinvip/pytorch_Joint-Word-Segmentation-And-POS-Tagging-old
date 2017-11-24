@@ -163,10 +163,6 @@ class Iterators():
         batch_static_char_features = Variable(torch.LongTensor(batch_length, max_char_size))
         batch_static_bichar_left_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
         batch_static_bichar_right_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
-        # batch_static_bichar_left_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
-        # batch_static_bichar_right_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
-        # batch_static_bichar_left_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
-        # batch_static_bichar_right_features = Variable(torch.LongTensor(batch_length, max_bichar_size))
 
         batch_gold_features = Variable(torch.LongTensor(max_gold_size * batch_length))
 
@@ -243,9 +239,6 @@ class Iterators():
         features.static_bichar_right_features = batch_static_bichar_right_features
         features.gold_features = batch_gold_features
         if self.args.use_cuda is True:
-            # batch_length = Variable(torch.LongTensor(1))
-            # batch_length.data = features.batch_length
-            # print("features cuda using......")
             features.cuda(features)
         return features
 

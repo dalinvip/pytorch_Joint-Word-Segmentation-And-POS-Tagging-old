@@ -42,8 +42,6 @@ class Encoder_WordLstm(nn.Module):
         init.uniform(self.static_bichar_embed.weight, a=-np.sqrt(3 / self.args.embed_bichar_dim),
                      b=np.sqrt(3 / self.args.embed_bichar_dim))
 
-        # self.char_embed.cuda()
-        # self.bichar_embed.cuda()
         # load external word embedding
         if args.char_Embedding is True:
             print("char_Embedding")

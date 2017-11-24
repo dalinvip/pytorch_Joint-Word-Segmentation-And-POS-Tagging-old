@@ -15,7 +15,6 @@ from models import encoder_wordlstm
 from models import encoder_wordlstmcell
 import train_seq2seq
 import train_seq2seq_wordlstm
-import train_ALL_LSTM
 import multiprocessing as mu
 import shutil
 import random
@@ -73,8 +72,8 @@ parser.add_argument('-max-norm', type=float, default=hyperparams.max_norm, help=
 parser.add_argument('-embed-dim', type=int, default=hyperparams.embed_dim, help='number of embedding dimension [default: 128]')
 parser.add_argument('-static', action='store_true', default=hyperparams.static, help='fix the embedding')
 parser.add_argument('-Wordlstm', action='store_true', default=hyperparams.Wordlstm, help='whether to use Wordlstm decoder model')
-parser.add_argument('-BiLSTM_1', action='store_true', default=hyperparams.BiLSTM_1, help='whether to use BiLSTM_1 model')
-parser.add_argument('-LSTM', action='store_true', default=hyperparams.LSTM, help='whether to use LSTM model')
+parser.add_argument('-Encoder_LSTM', action='store_true', default=hyperparams.Encoder_LSTM, help='whether to use BiLSTM_1 model')
+parser.add_argument('-Encoder_LSTMCell', action='store_true', default=hyperparams.Encoder_LSTMCell, help='whether to use LSTM model')
 parser.add_argument('-fix_Embedding', action='store_true', default=hyperparams.fix_Embedding, help='whether to fix word embedding during training')
 parser.add_argument('-word_Embedding', action='store_true', default=hyperparams.word_Embedding, help='whether to load word embedding')
 parser.add_argument('-word_Embedding_Path', type=str, default=hyperparams.word_Embedding_Path, help='filename of model snapshot [default: None]')
@@ -234,13 +233,15 @@ shutil.copy("./hyperparams.py", "./snapshot/" + mulu)
 
 
 # load model
-# model_encoder = encoder.Encoder(args=args)
-# model_decoder = decoder.Decoder(args=args)
+model_encoder = None
+model_decoder = None
 if args.Wordlstm is True:
     print("loading word lstm decoder model")
     model_decoder = decoder_wordlstm.Decoder_WordLstm(args=args)
-    # model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
-    model_encoder = encoder_wordlstmcell.Encoder_WordLstm(args)
+    if args.Encoder_LSTMCell is True:
+        model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
+    elif args.Encoder_LSTM is True:
+        model_encoder = encoder_wordlstmcell.Encoder_WordLstm(args)
 else:
     model_decoder = decoder.Decoder(args=args)
     # model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
@@ -251,8 +252,7 @@ if args.use_cuda is True:
     print("using cuda......")
     model_encoder = model_encoder.cuda()
     model_decoder = model_decoder.cuda()
-    # model_encoder.cuda()
-    # model_decoder.cuda()
+
 # train
 print("\n CPU Count is {} and Current Process is {} \n".format(mu.cpu_count(), mu.current_process()))
 # set thread number

@@ -35,6 +35,5 @@ class Eval:
 
         return self.precision, self.recall, self.fscore
 
-
     def acc(self):
         return self.correct_num / self.gold_num

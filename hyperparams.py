@@ -23,7 +23,7 @@ class Hyperparams():
         self.learning_rate = 0.001
         # self.learning_rate_decay = 0.9   # value is 1 means not change lr
         self.learning_rate_decay = 1   # value is 1 means not change lr
-        self.epochs = 2000
+        self.epochs = 200
         self.train_batch_size = 16
         self.dev_batch_size = 1
         self.test_batch_size = 1
@@ -40,8 +40,9 @@ class Hyperparams():
         self.static = False
         # model
         self.Wordlstm = True
-        self.LSTM = False
-        self.BiLSTM_1 = False
+        # self.WordlstmCell =
+        self.Encoder_LSTM = True
+        self.Encoder_LSTMCell = False
         # select optim algorhtim to train
         self.Adam = True
         self.SGD = False

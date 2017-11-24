@@ -45,8 +45,8 @@ class Decoder(nn.Module):
         decoder_out = self.linear(non_linear)
         decoder_out_acc = decoder_out
         decoder_out = decoder_out.view(features.batch_length * encoder_out.size(1), -1)
-        print("a", decoder_out_acc.size())
-        print("b", decoder_out.size())
+        # print("a", decoder_out_acc.size())
+        # print("b", decoder_out.size())
 
         return decoder_out, decoder_out_acc
 
