@@ -68,6 +68,7 @@ parser.add_argument('-init_weight_decay', type=float, default=hyperparams.weight
 parser.add_argument('-init_clip_max_norm', type=float, default=hyperparams.clip_max_norm, help='value of init clip_max_norm')
 parser.add_argument('-dropout', type=float, default=hyperparams.dropout, help='the probability for dropout [default: 0.5]')
 parser.add_argument('-dropout_embed', type=float, default=hyperparams.dropout_embed, help='the probability for dropout [default: 0.5]')
+parser.add_argument('-dropout_lstm', type=float, default=hyperparams.dropout_lstm, help='the probability for dropout [default: 0.5]')
 parser.add_argument('-max-norm', type=float, default=hyperparams.max_norm, help='l2 constraint of parameters [default: 3.0]')
 parser.add_argument('-embed-dim', type=int, default=hyperparams.embed_dim, help='number of embedding dimension [default: 128]')
 parser.add_argument('-static', action='store_true', default=hyperparams.static, help='fix the embedding')
@@ -238,9 +239,9 @@ model_decoder = None
 if args.Wordlstm is True:
     print("loading word lstm decoder model")
     model_decoder = decoder_wordlstm.Decoder_WordLstm(args=args)
-    if args.Encoder_LSTMCell is True:
+    if args.Encoder_LSTM is True:
         model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
-    elif args.Encoder_LSTM is True:
+    elif args.Encoder_LSTMCell is True:
         model_encoder = encoder_wordlstmcell.Encoder_WordLstm(args)
 else:
     model_decoder = decoder.Decoder(args=args)

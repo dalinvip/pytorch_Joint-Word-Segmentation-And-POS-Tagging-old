@@ -62,9 +62,9 @@ class Encoder_WordLstm(nn.Module):
             self.static_bichar_embed.weight.requires_grad = False
 
         self.lstm_left = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim,
-                                 dropout=self.args.dropout, bias=True)
+                                 dropout=self.args.dropout_lstm, bias=True)
         self.lstm_right = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim,
-                                  dropout=self.args.dropout, bias=True)
+                                  dropout=self.args.dropout_lstm, bias=True)
 
         # init lstm weight and bias
         init.xavier_uniform(self.lstm_left.weight_ih_l0)
