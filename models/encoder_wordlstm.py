@@ -157,11 +157,14 @@ class Encoder_WordLstm(nn.Module):
         # right_concat = right_concat.view(batch_length, char_features_num, self.args.rnn_hidden_dim)
 
         # reverse right_concat
+        right_concat_input = right_concat_input.permute(1, 0, 2)
         for batch in range(batch_length):
             middle = right_concat_input.size(1) // 2
             # print(middle)
             for i, j in zip(range(0, middle, 1), range(right_concat_input.size(1) - 1, middle, -1)):
-                temp = torch.FloatTensor(right_concat_input[batch][i].size())
+                # temp = torch.zeros(right_concat_input[batch][i].size())
+                # print(right_concat_input[batch][12].size())
+                temp = torch.zeros(right_concat_input[batch][i].data.size())
                 temp.copy_(right_concat_input[batch][i].data)
                 right_concat_input[batch][i].data.copy_(right_concat_input[batch][j].data)
                 right_concat_input[batch][j].data.copy_(temp)
@@ -187,10 +190,12 @@ class Encoder_WordLstm(nn.Module):
             middle = lstm_right_out.size(1) // 2
             # print(middle)
             for i, j in zip(range(0, middle, 1), range(lstm_right_out.size(1) - 1, middle, -1)):
-                temp = torch.FloatTensor(lstm_right_out[batch][i].size())
+                # temp = torch.FloatTensor(lstm_right_out[batch][i].size())
+                temp = torch.zeros(lstm_right_out[batch][i].size())
                 temp.copy_(lstm_right_out[batch][i].data)
                 lstm_right_out[batch][i].data.copy_(lstm_right_out[batch][j].data)
                 lstm_right_out[batch][j].data.copy_(temp)
+        lstm_right_out = lstm_right_out.permute(1, 0, 2)
 
         encoder_output = torch.cat((lstm_left_out, lstm_right_out), 2).permute(1, 0, 2)
 
