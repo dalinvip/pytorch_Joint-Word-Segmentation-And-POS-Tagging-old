@@ -113,9 +113,9 @@ class Decoder_WordLstm(nn.Module):
         batch_output = torch.cat(batch_output, 0)
         batch_output = self.softmax(batch_output)
         # print("batch_output", batch_output.size())
-        decoder_out_acc = batch_output.view(batch_length, encoder_out.size(1), -1)
+        # decoder_out_acc = batch_output.view(batch_length, encoder_out.size(1), -1)
         # print("de", decoder_out_acc.size())
-        return batch_output, batch_state, decoder_out_acc
+        return batch_output, batch_state
 
     def word_lstm(self, state, index, encoder_out):
         # print("executing word lstm")

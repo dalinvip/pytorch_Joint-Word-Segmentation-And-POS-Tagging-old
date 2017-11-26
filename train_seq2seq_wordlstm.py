@@ -68,7 +68,7 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
 
             maxCharSize = batch_features.char_features.size()[1]
             encoder_out = model_encoder(batch_features)
-            decoder_out, state, decoder_out_acc = model_decoder(batch_features, encoder_out, train=True)
+            decoder_out, state = model_decoder(batch_features, encoder_out, train=True)
 
             cal_train_acc(batch_features, train_eval, batch_count, decoder_out, maxCharSize, args)
 
@@ -88,19 +88,19 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
                 sys.stdout.write("\rbatch_count = [{}] , loss is {:.6f} , (correct/ total_num) = acc ({} / {}) = "
                                  "{:.6f}%".format(batch_count + 1, loss.data[0], train_eval.correct_num,
                                                   train_eval.gold_num, train_eval.acc() * 100))
-            if steps % args.dev_interval == 0:
-                print("\ndev F-score")
-                dev_eval_pos.clear()
-                dev_eval_seg.clear()
-                eval(dev_iter, model_encoder, model_decoder, args, dev_eval_seg, dev_eval_pos)
-                # model_encoder.train()
-                # model_decoder.train()
-            if steps % args.test_interval == 0:
-                print("test F-score")
-                test_eval_pos.clear()
-                test_eval_seg.clear()
-                eval(test_iter, model_encoder, model_decoder, args, test_eval_seg, test_eval_pos)
-                print("\n")
+            # if steps % args.dev_interval == 0:
+            #     print("\ndev F-score")
+            #     dev_eval_pos.clear()
+            #     dev_eval_seg.clear()
+            #     eval(dev_iter, model_encoder, model_decoder, args, dev_eval_seg, dev_eval_pos)
+            #     # model_encoder.train()
+            #     # model_decoder.train()
+            # if steps % args.test_interval == 0:
+            #     print("test F-score")
+            #     test_eval_pos.clear()
+            #     test_eval_seg.clear()
+            #     eval(test_iter, model_encoder, model_decoder, args, test_eval_seg, test_eval_pos)
+            #     print("\n")
         # train time
         end_time = time.time()
         print("\ntrain time cost: ", end_time - start_time, 's')
@@ -197,7 +197,7 @@ def eval(data_iter, model_encoder, model_decoder, args, eval_seg, eval_pos):
     # eval_pos = Eval()
     for batch_features in data_iter:
         encoder_out = model_encoder(batch_features)
-        decoder_out, state, decoder_out_acc = model_decoder(batch_features, encoder_out, train=False)
+        decoder_out, state = model_decoder(batch_features, encoder_out, train=False)
         for i in range(batch_features.batch_length):
             jointPRF(batch_features.inst[i], state[i], eval_seg, eval_pos)
     # calculate the time
