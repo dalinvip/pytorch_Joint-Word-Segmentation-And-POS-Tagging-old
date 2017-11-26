@@ -105,10 +105,14 @@ import numpy as np
 
 
 
-a = 1 % -1 == 0
+# a = 1 % -1 == 0
+# print(a)
+#
+# b = 4 % -1 == 0
+# print(b)
+
+
+a = [[1, 2, 3], [1, 2, 4]]
 print(a)
-
-b = 4 % -1 == 0
+b = torch.LongTensor(a)
 print(b)
-
-

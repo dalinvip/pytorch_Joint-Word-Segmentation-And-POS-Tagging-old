@@ -61,10 +61,8 @@ class Encoder_WordLstm(nn.Module):
                 self.static_bichar_embed.weight.data[self.args.create_static_alphabet.bichar_PaddingID][index] = 0
             self.static_bichar_embed.weight.requires_grad = False
 
-        self.lstm_left = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim,
-                                 dropout=self.args.dropout_lstm, bias=True)
-        self.lstm_right = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim,
-                                  dropout=self.args.dropout_lstm, bias=True)
+        self.lstm_left = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
+        self.lstm_right = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
 
         # init lstm weight and bias
         init.xavier_uniform(self.lstm_left.weight_ih_l0)
@@ -95,19 +93,19 @@ class Encoder_WordLstm(nn.Module):
         # the first is the hidden h
         # the second is the cell  c
         if self.args.use_cuda is True:
-            return (Variable(torch.zeros(1, batch_size, self.args.rnn_hidden_dim)).cuda(),
-                    Variable(torch.zeros(1, batch_size, self.args.rnn_hidden_dim)).cuda())
+            return (Variable(torch.zeros(batch_size, 1, self.args.rnn_hidden_dim)).cuda(),
+                    Variable(torch.zeros(batch_size, 1, self.args.rnn_hidden_dim)).cuda())
         else:
-            return (Variable(torch.zeros(1, batch_size, self.args.rnn_hidden_dim)),
-                    Variable(torch.zeros(1, batch_size, self.args.rnn_hidden_dim)))
+            return (Variable(torch.zeros(batch_size, 1, self.args.rnn_hidden_dim)),
+                    Variable(torch.zeros(batch_size, 1, self.args.rnn_hidden_dim)))
 
     def init_cell_hidden(self, batch=1):
         if self.args.use_cuda is True:
-            return (torch.autograd.Variable(torch.zeros(batch, self.args.rnn_hidden_dim)).cuda(),
-                    torch.autograd.Variable(torch.zeros(batch, self.args.rnn_hidden_dim)).cuda())
+            return (torch.autograd.Variable(torch.zeros(1, batch, self.args.rnn_hidden_dim)).cuda(),
+                    torch.autograd.Variable(torch.zeros(1, batch, self.args.rnn_hidden_dim)).cuda())
         else:
-            return (torch.autograd.Variable(torch.zeros(batch, self.args.rnn_hidden_dim)),
-                    torch.autograd.Variable(torch.zeros(batch, self.args.rnn_hidden_dim)))
+            return (torch.autograd.Variable(torch.zeros(1, batch, self.args.rnn_hidden_dim)),
+                    torch.autograd.Variable(torch.zeros(1, batch, self.args.rnn_hidden_dim)))
 
     def forward(self, features):
         # print("Encoder forward")
@@ -127,38 +125,6 @@ class Encoder_WordLstm(nn.Module):
         static_bichar_l_features = self.static_bichar_embed(features.static_bichar_left_features)
         static_bichar_r_features = self.static_bichar_embed(features.static_bichar_right_features)
 
-        # right reverse
-        reverse_static_char_features_index = []
-        reverse_static_bichar_features_index = []
-        reverse_char_features_index = []
-        reverse_bichar_right_features_index = []
-        for id_batch in range(batch_length):
-            reverse_static_char_features_index.append(features.static_char_features.data[id_batch].tolist()[::-1])
-            reverse_char_features_index.append(features.char_features.data[id_batch].tolist()[::-1])
-            reverse_bichar_right_features_index.append(features.bichar_right_features.data[id_batch].tolist()[::-1])
-            reverse_static_bichar_features_index.append(features.static_bichar_right_features.data[id_batch].tolist()[::-1])
-        reverse_static_char_features_index = Variable(torch.LongTensor(reverse_static_char_features_index))
-        reverse_char_features_index = Variable(torch.LongTensor(reverse_char_features_index))
-        reverse_bichar_right_features_index = Variable(torch.LongTensor(reverse_bichar_right_features_index))
-        reverse_static_bichar_features_index = Variable(torch.LongTensor(reverse_static_bichar_features_index))
-        if self.args.use_cuda is True:
-            reverse_static_char_features_index = reverse_static_char_features_index.cuda()
-            reverse_char_features_index = reverse_char_features_index.cuda()
-            reverse_bichar_right_features_index = reverse_bichar_right_features_index.cuda()
-            reverse_static_bichar_features_index = reverse_static_bichar_features_index.cuda()
-        # right embedding
-        reverse_static_char_features = self.static_char_embed(reverse_static_char_features_index)
-        reverse_char_features = self.char_embed(reverse_char_features_index)
-        reverse_bichar_right_features = self.bichar_embed(reverse_bichar_right_features_index)
-        reverse_static_bichar_features = self.static_bichar_embed(reverse_static_bichar_features_index)
-
-        # dropout
-        reverse_static_char_features = self.dropout(reverse_static_char_features)
-        reverse_char_features = self.dropout(reverse_char_features)
-        reverse_bichar_right_features = self.dropout(reverse_bichar_right_features)
-        reverse_static_bichar_features = self.dropout(reverse_static_bichar_features)
-
-
         # dropout
         char_features = self.dropout_embed(char_features)
         bichar_left_features = self.dropout_embed(bichar_left_features)
@@ -172,9 +138,7 @@ class Encoder_WordLstm(nn.Module):
         left_concat = torch.cat((char_features, static_char_features, bichar_left_features, static_bichar_l_features), 2)
         # left_concat = left_concat.view(batch_length * char_features_num, self.input_dim)
         # right concat
-        # right_concat = torch.cat((char_features, static_char_features, bichar_right_features, static_bichar_r_features), 2)
-        right_concat = torch.cat((reverse_static_bichar_features, reverse_bichar_right_features,
-                                  reverse_static_char_features, reverse_char_features), 2)
+        right_concat = torch.cat((char_features, static_char_features, bichar_right_features, static_bichar_r_features), 2)
         # right_concat = right_concat.view(batch_length * char_features_num, self.input_dim)
 
         # non-linear
@@ -186,36 +150,73 @@ class Encoder_WordLstm(nn.Module):
         right_concat_input = right_concat_non_linear.permute(1, 0, 2)
         # right_concat = right_concat.view(batch_length, char_features_num, self.args.rnn_hidden_dim)
 
-
+        # # reverse right_concat
+        # right_concat_input = right_concat_input.permute(1, 0, 2)
+        # for batch in range(batch_length):
+        #     middle = right_concat_input.size(1) // 2
+        #     # print(middle)
+        #     for i, j in zip(range(0, middle, 1), range(right_concat_input.size(1) - 1, middle, -1)):
+        #         # temp = torch.zeros(right_concat_input[batch][i].size())
+        #         # print(right_concat_input[batch][12].size())
+        #         temp = torch.zeros(right_concat_input[batch][i].data.size())
+        #         temp.copy_(right_concat_input[batch][i].data)
+        #         right_concat_input[batch][i].data.copy_(right_concat_input[batch][j].data)
+        #         right_concat_input[batch][j].data.copy_(temp)
+        # right_concat_input = right_concat_input.permute(1, 0, 2)
 
         # non-linear dropout
         left_concat_input = self.dropout(left_concat_input)
         right_concat_input = self.dropout(right_concat_input)
 
         # init hidden cell
-        self.hidden = self.init_hidden_cell(batch_size=batch_length)
+        # self.hidden = self.init_hidden_cell(batch_size=batch_length)
 
         # lstm
         # lstm_left_out, _ = self.lstm_left(left_concat_input, self.hidden)
         # lstm_right_out, _ = self.lstm_right(right_concat_input, self.hidden)
-        lstm_left_out, _ = self.lstm_left(left_concat_input)
-        lstm_right_out, _ = self.lstm_right(right_concat_input)
+        # lstm_left_out, _ = self.lstm_left(left_concat_input)
+        # lstm_right_out, _ = self.lstm_right(right_concat_input)
+
+        left_h, left_c = self.init_cell_hidden(batch_length)
+        # print(left_h)
+        # print(left_c)
+        left_lstm_output = []
+        for idx in range(char_features_num):
+            print(left_concat_input[idx].unsqueeze(0))
+            # left_h, left_c = self.lstm_left(left_concat_input[idx], self.hidden_l)
+            left_h, left_c = self.lstm_left(left_concat_input[idx], (left_h, left_c))
+            left_h = self.dropout(left_h)
+            print(left_h)
+            left_lstm_output.append(left_h.view(batch_length, 1, self.args.rnn_hidden_dim))
+        left_lstm_output = torch.cat(left_lstm_output, 1)
+
+        # self.hidden_r = self.init_hidden_cell(batch_length)
+        right_h, right_c = self.init_cell_hidden(batch_length)
+        right_lstm_output = []
+        for idx in reversed(range(char_features_num)):
+            # print(idx)
+            # right_h, right_c = self.lstm_right(right_concat_input[idx], self.hidden_r)
+            right_h, right_c = self.lstm_right(right_concat_input[idx], (right_h, right_c))
+            right_h = self.dropout(right_h)
+            # right_lstm_output.insert(0, right_h.view(batch_length, 1, self.args.rnn_hidden_dim))
+            right_lstm_output.insert(0, right_h.view(batch_length, 1, self.args.rnn_hidden_dim))
+        right_lstm_output = torch.cat(right_lstm_output, 1)
 
         # print("size", lstm_right_out.size())
-        # reverse lstm_right_out
-        lstm_right_out = lstm_right_out.permute(1, 0, 2)
-        for batch in range(batch_length):
-            middle = lstm_right_out.size(1) // 2
-            # print(middle)
-            for i, j in zip(range(0, middle, 1), range(lstm_right_out.size(1) - 1, middle, -1)):
-                # temp = torch.FloatTensor(lstm_right_out[batch][i].size())
-                temp = torch.zeros(lstm_right_out[batch][i].size())
-                temp.copy_(lstm_right_out[batch][i].data)
-                lstm_right_out[batch][i].data.copy_(lstm_right_out[batch][j].data)
-                lstm_right_out[batch][j].data.copy_(temp)
-        lstm_right_out = lstm_right_out.permute(1, 0, 2)
+        # # reverse lstm_right_out
+        # lstm_right_out = lstm_right_out.permute(1, 0, 2)
+        # for batch in range(batch_length):
+        #     middle = lstm_right_out.size(1) // 2
+        #     # print(middle)
+        #     for i, j in zip(range(0, middle, 1), range(lstm_right_out.size(1) - 1, middle, -1)):
+        #         # temp = torch.FloatTensor(lstm_right_out[batch][i].size())
+        #         temp = torch.zeros(lstm_right_out[batch][i].size())
+        #         temp.copy_(lstm_right_out[batch][i].data)
+        #         lstm_right_out[batch][i].data.copy_(lstm_right_out[batch][j].data)
+        #         lstm_right_out[batch][j].data.copy_(temp)
+        # lstm_right_out = lstm_right_out.permute(1, 0, 2)
 
-        encoder_output = torch.cat((lstm_left_out, lstm_right_out), 2).permute(1, 0, 2)
+        encoder_output = torch.cat((left_lstm_output, right_lstm_output), 2)
 
         return encoder_output
 
