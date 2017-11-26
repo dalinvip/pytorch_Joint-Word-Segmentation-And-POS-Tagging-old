@@ -120,13 +120,9 @@ class Encoder_WordLstm(nn.Module):
         bichar_left_features = self.bichar_embed(features.bichar_left_features)
         bichar_right_features = self.bichar_embed(features.bichar_right_features)
 
-        # print(char_features.size())
-
         # fix the word embedding
         static_char_features = self.static_char_embed(features.static_char_features)
         static_bichar_l_features = self.static_bichar_embed(features.static_bichar_left_features)
-        static_bichar_left_features_index = features.static_bichar_left_features
-        aa = self.static_bichar_embed(static_bichar_left_features_index)
         static_bichar_r_features = self.static_bichar_embed(features.static_bichar_right_features)
 
         # dropout

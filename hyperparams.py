@@ -35,7 +35,7 @@ class Hyperparams():
         self.epochs_shuffle = True
         self.dropout = 0.25
         self.dropout_embed = 0.25
-        self.dropout_lstm = 0.20
+        self.dropout_lstm = 0.5
         self.max_norm = None
         self.clip_max_norm = 10
         self.static = False

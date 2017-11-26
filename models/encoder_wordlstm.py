@@ -95,11 +95,11 @@ class Encoder_WordLstm(nn.Module):
         # the first is the hidden h
         # the second is the cell  c
         if self.args.use_cuda is True:
-            return (Variable(torch.zeros(batch_size, self.args.rnn_hidden_dim)).cuda(),
-                    Variable(torch.zeros(batch_size, self.args.rnn_hidden_dim)).cuda())
+            return (Variable(torch.zeros(1, batch_size, self.args.rnn_hidden_dim)).cuda(),
+                    Variable(torch.zeros(1, batch_size, self.args.rnn_hidden_dim)).cuda())
         else:
-            return (Variable(torch.zeros(batch_size, self.args.rnn_hidden_dim)),
-                    Variable(torch.zeros(batch_size, self.args.rnn_hidden_dim)))
+            return (Variable(torch.zeros(1, batch_size, self.args.rnn_hidden_dim)),
+                    Variable(torch.zeros(1, batch_size, self.args.rnn_hidden_dim)))
 
     def init_cell_hidden(self, batch=1):
         if self.args.use_cuda is True:
@@ -127,8 +127,6 @@ class Encoder_WordLstm(nn.Module):
         # fix the word embedding
         static_char_features = self.static_char_embed(features.static_char_features)
         static_bichar_l_features = self.static_bichar_embed(features.static_bichar_left_features)
-        static_bichar_left_features_index = features.static_bichar_left_features
-        aa = self.static_bichar_embed(static_bichar_left_features_index)
         static_bichar_r_features = self.static_bichar_embed(features.static_bichar_right_features)
 
         # dropout
@@ -177,9 +175,10 @@ class Encoder_WordLstm(nn.Module):
 
         # init hidden cell
         self.hidden = self.init_hidden_cell(batch_size=batch_length)
+
         # lstm
-        # lstm_left_out, _ = self.lstm_left(left_concat, self.hidden)
-        # lstm_right_out, _ = self.lstm_right(right_concat, self.hidden)
+        # lstm_left_out, _ = self.lstm_left(left_concat_input, self.hidden)
+        # lstm_right_out, _ = self.lstm_right(right_concat_input, self.hidden)
         lstm_left_out, _ = self.lstm_left(left_concat_input)
         lstm_right_out, _ = self.lstm_right(right_concat_input)
 
