@@ -11,6 +11,7 @@ from loaddata.Batch_Iterator import Iterators
 from models import encoder
 from models import decoder
 from models import decoder_wordlstm
+from models import decoder_nowordlstm
 from models import encoder_wordlstm
 from models import encoder_wordlstmcell
 import train_seq2seq
@@ -245,6 +246,7 @@ if args.Wordlstm is True:
         model_encoder = encoder_wordlstmcell.Encoder_WordLstm(args)
 else:
     model_decoder = decoder.Decoder(args=args)
+    model_decoder = decoder_nowordlstm.Decoder(args=args)
     # model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
     model_encoder = encoder.Encoder(args=args)
 print(model_encoder)

@@ -40,7 +40,7 @@ class Hyperparams():
         self.clip_max_norm = 10
         self.static = False
         # model
-        self.Wordlstm = True
+        self.Wordlstm = False
         # self.WordlstmCell =
         self.Encoder_LSTM = True
         self.Encoder_LSTMCell = False
