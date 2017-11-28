@@ -31,7 +31,7 @@ class Hyperparams():
         self.dev_interval = 4000000
         self.test_interval = 4000000
         self.save_dir = "snapshot"
-        self.shuffle = False
+        self.shuffle = True
         self.epochs_shuffle = True
         self.dropout = 0.25
         self.dropout_embed = 0.25
