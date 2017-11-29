@@ -245,7 +245,7 @@ if args.Wordlstm is True:
     elif args.Encoder_LSTMCell is True:
         model_encoder = encoder_wordlstmcell.Encoder_WordLstm(args)
 else:
-    model_decoder = decoder.Decoder(args=args)
+    # model_decoder = decoder.Decoder(args=args)
     model_decoder = decoder_nowordlstm.Decoder(args=args)
     # model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
     model_encoder = encoder.Encoder(args=args)

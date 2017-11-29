@@ -192,16 +192,21 @@ def getMaxindex(decode_out_acc, args):
 
 def eval(data_iter, model_encoder, model_decoder, args, eval_seg, eval_pos):
     # eval time
-    eval_start = time.time()
+
+    test_eval_start = time.time()
+    time_list = []
     # eval_seg = Eval()
     # eval_pos = Eval()
     for batch_features in data_iter:
+        eval_start = time.time()
         encoder_out = model_encoder(batch_features)
         decoder_out, state = model_decoder(batch_features, encoder_out, train=False)
+        time_list.append(time.time() - eval_start)
         for i in range(batch_features.batch_length):
             jointPRF(batch_features.inst[i], state[i], eval_seg, eval_pos)
     # calculate the time
-    print("eval time cost: ", time.time() - eval_start, 's')
+    print("eval decoder time cost: ", sum(time_list), 's')
+    print("eval used time cost: ", time.time() - test_eval_start, 's')
 
     # calculate the F-Score
     p, r, f = eval_seg.getFscore()

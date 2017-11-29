@@ -25,26 +25,21 @@ class Encoder_WordLstm(nn.Module):
         self.args = args
 
         # random
-        self.char_embed = nn.Embedding(self.args.embed_char_num, self.args.embed_char_dim, sparse=True,
-                                       padding_idx=self.args.create_alphabet.char_PaddingID)
-        # for index in range(self.args.embed_char_dim):
-        #     self.char_embed.weight.data[self.args.create_alphabet.char_PaddingID][index] = 0
+        self.char_embed = nn.Embedding(self.args.embed_char_num, self.args.embed_char_dim, sparse=False)
+        for index in range(self.args.embed_char_dim):
+            self.char_embed.weight.data[self.args.create_alphabet.char_PaddingID][index] = 0
         self.char_embed.weight.requires_grad = True
 
-        self.bichar_embed = nn.Embedding(self.args.embed_bichar_num, self.args.embed_bichar_dim, sparse=True,
-                                         padding_idx=self.args.create_alphabet.bichar_PaddingID)
-        # for index in range(self.args.embed_bichar_dim):
-        #     self.bichar_embed.weight.data[self.args.create_alphabet.bichar_PaddingID][index] = 0
+        self.bichar_embed = nn.Embedding(self.args.embed_bichar_num, self.args.embed_bichar_dim, sparse=False)
+        for index in range(self.args.embed_bichar_dim):
+            self.bichar_embed.weight.data[self.args.create_alphabet.bichar_PaddingID][index] = 0
         self.bichar_embed.weight.requires_grad = True
 
         # fix the word embedding
-        self.static_char_embed = nn.Embedding(self.args.static_embed_char_num, self.args.embed_char_dim, sparse=True,
-                                              padding_idx=self.args.create_static_alphabet.char_PaddingID)
+        self.static_char_embed = nn.Embedding(self.args.static_embed_char_num, self.args.embed_char_dim, sparse=False)
         init.uniform(self.static_char_embed.weight, a=-np.sqrt(3 / self.args.embed_char_dim),
                      b=np.sqrt(3 / self.args.embed_char_dim))
-        self.static_bichar_embed = nn.Embedding(self.args.static_embed_bichar_num, self.args.embed_bichar_dim,
-                                                sparse=True,
-                                                padding_idx=self.args.create_static_alphabet.bichar_PaddingID)
+        self.static_bichar_embed = nn.Embedding(self.args.static_embed_bichar_num, self.args.embed_bichar_dim, sparse=True)
         init.uniform(self.static_bichar_embed.weight, a=-np.sqrt(3 / self.args.embed_bichar_dim),
                      b=np.sqrt(3 / self.args.embed_bichar_dim))
 
@@ -55,7 +50,7 @@ class Encoder_WordLstm(nn.Module):
             self.static_char_embed.weight.data.copy_(torch.from_numpy(pretrained_char_weight))
             for index in range(self.args.embed_char_dim):
                 self.static_char_embed.weight.data[self.args.create_static_alphabet.char_PaddingID][index] = 0
-        self.static_char_embed.weight.requires_grad = False
+            self.static_char_embed.weight.requires_grad = False
 
         if args.bichar_Embedding is True:
             print("bichar_Embedding")
@@ -65,7 +60,7 @@ class Encoder_WordLstm(nn.Module):
             # print(self.static_bichar_embed.weight.data[self.args.create_static_alphabet.bichar_UnkID])
             for index in range(self.args.embed_bichar_dim):
                 self.static_bichar_embed.weight.data[self.args.create_static_alphabet.bichar_PaddingID][index] = 0
-        self.static_bichar_embed.weight.requires_grad = False
+            self.static_bichar_embed.weight.requires_grad = False
 
         self.lstm_left = nn.LSTMCell(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
         self.lstm_right = nn.LSTMCell(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
@@ -155,27 +150,21 @@ class Encoder_WordLstm(nn.Module):
         # left_lstm_output, _ = self.lstm_left(left_concat_input)
 
         left_h, left_c = self.init_cell_hidden(batch_length)
-        right_h, right_c = self.init_cell_hidden(batch_length)
         left_lstm_output = []
-        right_lstm_output = []
-        for idx, id_right in zip(range(char_features_num), reversed(range(char_features_num))):
+        for idx in range(char_features_num):
             left_h, left_c = self.lstm_left(left_concat_input[idx], (left_h, left_c))
-            right_h, right_c = self.lstm_right(right_concat_input[id_right], (right_h, right_c))
             left_h = self.dropout(left_h)
-            right_h = self.dropout(right_h)
             left_lstm_output.append(left_h.view(batch_length, 1, self.args.rnn_hidden_dim))
-            right_lstm_output.insert(0, right_h.view(batch_length, 1, self.args.rnn_hidden_dim))
         left_lstm_output = torch.cat(left_lstm_output, 1)
-        right_lstm_output = torch.cat(right_lstm_output, 1)
 
-        # # self.hidden_r = self.init_hidden_cell(batch_length)
-        # right_h, right_c = self.init_cell_hidden(batch_length)
-        # right_lstm_output = []
-        # for idx in reversed(range(char_features_num)):
-        #     right_h, right_c = self.lstm_right(right_concat_input[idx], (right_h, right_c))
-        #     right_h = self.dropout(right_h)
-        #     right_lstm_output.insert(0, right_h.view(batch_length, 1, self.args.rnn_hidden_dim))
-        # right_lstm_output = torch.cat(right_lstm_output, 1)
+        # self.hidden_r = self.init_hidden_cell(batch_length)
+        right_h, right_c = self.init_cell_hidden(batch_length)
+        right_lstm_output = []
+        for idx in reversed(range(char_features_num)):
+            right_h, right_c = self.lstm_right(right_concat_input[idx], (right_h, right_c))
+            right_h = self.dropout(right_h)
+            right_lstm_output.insert(0, right_h.view(batch_length, 1, self.args.rnn_hidden_dim))
+        right_lstm_output = torch.cat(right_lstm_output, 1)
 
         encoder_output = torch.cat((left_lstm_output, right_lstm_output), 2)
 
