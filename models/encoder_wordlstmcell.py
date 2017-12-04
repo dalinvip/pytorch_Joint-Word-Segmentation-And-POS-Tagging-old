@@ -25,25 +25,25 @@ class Encoder_WordLstm(nn.Module):
         self.args = args
 
         # random
-        self.char_embed = nn.Embedding(self.args.embed_char_num, self.args.embed_char_dim, sparse=True,
+        self.char_embed = nn.Embedding(self.args.embed_char_num, self.args.embed_char_dim, sparse=False,
                                        padding_idx=self.args.create_alphabet.char_PaddingID)
         # for index in range(self.args.embed_char_dim):
         #     self.char_embed.weight.data[self.args.create_alphabet.char_PaddingID][index] = 0
         self.char_embed.weight.requires_grad = True
 
-        self.bichar_embed = nn.Embedding(self.args.embed_bichar_num, self.args.embed_bichar_dim, sparse=True,
+        self.bichar_embed = nn.Embedding(self.args.embed_bichar_num, self.args.embed_bichar_dim, sparse=False,
                                          padding_idx=self.args.create_alphabet.bichar_PaddingID)
         # for index in range(self.args.embed_bichar_dim):
         #     self.bichar_embed.weight.data[self.args.create_alphabet.bichar_PaddingID][index] = 0
         self.bichar_embed.weight.requires_grad = True
 
         # fix the word embedding
-        self.static_char_embed = nn.Embedding(self.args.static_embed_char_num, self.args.embed_char_dim, sparse=True,
+        self.static_char_embed = nn.Embedding(self.args.static_embed_char_num, self.args.embed_char_dim, sparse=False,
                                               padding_idx=self.args.create_static_alphabet.char_PaddingID)
         init.uniform(self.static_char_embed.weight, a=-np.sqrt(3 / self.args.embed_char_dim),
                      b=np.sqrt(3 / self.args.embed_char_dim))
         self.static_bichar_embed = nn.Embedding(self.args.static_embed_bichar_num, self.args.embed_bichar_dim,
-                                                sparse=True,
+                                                sparse=False,
                                                 padding_idx=self.args.create_static_alphabet.bichar_PaddingID)
         init.uniform(self.static_bichar_embed.weight, a=-np.sqrt(3 / self.args.embed_bichar_dim),
                      b=np.sqrt(3 / self.args.embed_bichar_dim))
