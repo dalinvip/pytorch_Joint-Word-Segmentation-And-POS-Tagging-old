@@ -43,8 +43,8 @@ class state_batch_instance:
             # self.word_hiddens.append([])
             # self.word_cells.append([])
             #
-            self.all_h.append([])
-            self.all_c.append([])
+            # self.all_h.append([])
+            # self.all_c.append([])
 
     def show(self):
         print("chars", self.chars)

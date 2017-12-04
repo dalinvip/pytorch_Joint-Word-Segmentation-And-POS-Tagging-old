@@ -1,5 +1,5 @@
 # coding=utf-8
-from loaddata.common import paddingkey
+from loaddata.common import paddingkey, app
 import torch.nn
 import torch.nn as nn
 import torch.nn.functional as F
@@ -26,6 +26,8 @@ class Decoder_WordLstm(nn.Module):
         self.args = args
 
         self.pos_paddingKey = self.args.create_alphabet.pos_PaddingID
+        print(self.pos_paddingKey)
+        print(self.args.create_alphabet.appID)
 
         # self.lstm = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
         self.lstmcell = nn.LSTMCell(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
@@ -42,6 +44,8 @@ class Decoder_WordLstm(nn.Module):
         init.uniform(self.pos_embed.weight,
                      a=-np.sqrt(3 / self.args.pos_dim),
                      b=np.sqrt(3 / self.args.pos_dim))
+        for i in range(self.args.pos_dim):
+            self.pos_embed.weight.data[self.pos_paddingKey][i] = 0
         self.pos_embed.weight.requires_grad = True
 
         self.linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2 + self.args.hidden_size,
@@ -72,10 +76,12 @@ class Decoder_WordLstm(nn.Module):
             self.bucket_rnn = self.bucket_rnn.cuda()
 
         self.z_bucket = Variable(torch.zeros(16, self.args.hidden_size))
+        self.z_bucket_randn = Variable(torch.randn(16, self.args.hidden_size))
         self.h_bucket = Variable(torch.zeros(16, self.args.rnn_hidden_dim))
         self.c_bucket = Variable(torch.zeros(16, self.args.rnn_hidden_dim))
         if self.args.use_cuda is True:
             self.z_bucket = self.z_bucket.cuda()
+            self.z_bucket_randn = self.z_bucket_randn.cuda()
             self.h_bucket = self.h_bucket.cuda()
             self.c_bucket = self.c_bucket.cuda()
 
@@ -83,7 +89,8 @@ class Decoder_WordLstm(nn.Module):
 
         batch_length = features.batch_length
         # print(encoder_out.size())
-        encoder_out = encoder_out.permute(1, 0, 2)
+        # encoder_out = encoder_out.permute(1, 0, 2)
+        encoder_out = torch.transpose(encoder_out, 0, 1)
         char_features_num = encoder_out.size(0)
         # print(char_features_num)
         state = state_batch_instance(features, char_features_num)
@@ -99,16 +106,22 @@ class Decoder_WordLstm(nn.Module):
                 h, c, z = self.h_bucket, self.c_bucket, self.z_bucket
             else:
                 # h, c = state.word_hiddens[-1], state.word_cells[-1]
-                h, c = self.h_bucket, self.c_bucket
+                h = state.word_hiddens[-1]
+                c = state.word_cells[-1]
+                # h, c = self.h_bucket, self.c_bucket
                 last_pos = Variable(torch.zeros(batch_length)).type(torch.LongTensor)
                 if self.args.use_cuda is True:
                     last_pos = last_pos.cuda()
                 pos_id_array = np.array(state.pos_id[-1])
                 last_pos.data.copy_(torch.from_numpy(pos_id_array))
                 # print(last_pos)
-                last_pos_embed = self.dropout(self.pos_embed(last_pos))
-                z = self.dropout(F.tanh(self.combine_linear(last_pos_embed)))
+                # last_pos_embed = self.dropout(self.pos_embed(last_pos))
+                last_pos_embed = self.pos_embed(last_pos)
+                z = self.combine_linear(last_pos_embed)
+                # z = self.dropout(F.tanh(self.combine_linear(last_pos_embed)))
+                # z = self.z_bucket_randn
             h_now, c_now = self.lstmcell(z, (h, c))
+
             v = torch.cat((h_now, encoder_out[id_char]), 1)
             # print(v)
             output = self.linear(v)
@@ -120,15 +133,17 @@ class Decoder_WordLstm(nn.Module):
             self.action(state, id_char, output, h_now, c_now, train)
             # print(state.words)
             # print(state.word_hiddens[id_char])
-
+            # for i in range(output.size(0)):
+            #     char_output.append(output[i].view(1, self.args.label_size))
+            # char_output.append(output)
             char_output.append(output.unsqueeze(1))
             batch_state.append(state)
+        # decoder_out = torch.cat(char_output, 0)
         decoder_out = torch.cat(char_output, 1)
-        decoder_out = self.softmax(decoder_out)
         # decoder_out = decoder_out.permute(1, 0, 2).contiguous()
         # print(decoder_out.size())
-        decoder_out = decoder_out.view(decoder_out.size(0) * decoder_out.size(1), decoder_out.size(2))
-
+        decoder_out = decoder_out.view(batch_length * char_features_num, -1)
+        decoder_out = self.softmax(decoder_out)
         return decoder_out, batch_state
 
     def action(self, state, index, output, hidden_now, cell_now, train):
@@ -174,9 +189,9 @@ class Decoder_WordLstm(nn.Module):
                 #     state.words[id_batch][-1][-1] += (state.chars[id_batch][index])
                 # pos_labels.append("#APP")
                 # pos_id.append(self.pos_paddingKey)
-                if act is not "ACT":
+                if act == app:
                     pos_id.append(state.pos_id[-1][id_batch])
-                else:
+                elif act == "ACT":
                     pos_id.append(self.pos_paddingKey)
                     # state.words[index][-1][-1] += (state.chars[id_batch][index])
             else:

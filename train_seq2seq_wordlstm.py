@@ -73,6 +73,7 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             cal_train_acc(batch_features, train_eval, batch_count, decoder_out, maxCharSize, args)
 
             loss = torch.nn.functional.nll_loss(decoder_out, batch_features.gold_features)
+            # loss = F.cross_entropy(decoder_out, batch_features.gold_features)
 
             loss.backward()
 

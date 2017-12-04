@@ -11,6 +11,7 @@ from loaddata.Batch_Iterator import Iterators
 from models import encoder
 from models import decoder
 from models import decoder_wordlstm
+from models import decoder_wordlstm_onlypos
 from models import decoder_nowordlstm
 from models import encoder_wordlstm
 from models import encoder_wordlstmcell
@@ -240,6 +241,7 @@ model_decoder = None
 if args.Wordlstm is True:
     print("loading word lstm decoder model")
     model_decoder = decoder_wordlstm.Decoder_WordLstm(args=args)
+    # model_decoder = decoder_wordlstm_onlypos.Decoder_WordLstm(args=args)
     if args.Encoder_LSTM is True:
         model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
     elif args.Encoder_LSTMCell is True:
