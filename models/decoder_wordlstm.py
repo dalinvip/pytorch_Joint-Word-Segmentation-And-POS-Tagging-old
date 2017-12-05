@@ -26,8 +26,8 @@ class Decoder_WordLstm(nn.Module):
         self.args = args
 
         self.pos_paddingKey = self.args.create_alphabet.pos_PaddingID
-        print(self.pos_paddingKey)
-        print(self.args.create_alphabet.appID)
+        print("pos_paddingKey", self.pos_paddingKey)
+        print("appID", self.args.create_alphabet.appID)
 
         # self.lstm = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
         self.lstmcell = nn.LSTMCell(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
@@ -75,15 +75,15 @@ class Decoder_WordLstm(nn.Module):
             self.bucket = self.bucket.cuda()
             self.bucket_rnn = self.bucket_rnn.cuda()
 
-        self.z_bucket = Variable(torch.zeros(16, self.args.hidden_size))
-        self.z_bucket_randn = Variable(torch.randn(16, self.args.hidden_size))
-        self.h_bucket = Variable(torch.zeros(16, self.args.rnn_hidden_dim))
-        self.c_bucket = Variable(torch.zeros(16, self.args.rnn_hidden_dim))
+    def init_hidden_cell(self, batch_size):
+        z_bucket = Variable(torch.zeros(batch_size, self.args.hidden_size))
+        h_bucket = Variable(torch.zeros(batch_size, self.args.rnn_hidden_dim))
+        c_bucket = Variable(torch.zeros(batch_size, self.args.rnn_hidden_dim))
         if self.args.use_cuda is True:
-            self.z_bucket = self.z_bucket.cuda()
-            self.z_bucket_randn = self.z_bucket_randn.cuda()
-            self.h_bucket = self.h_bucket.cuda()
-            self.c_bucket = self.c_bucket.cuda()
+            z_bucket = z_bucket.cuda()
+            h_bucket = h_bucket.cuda()
+            c_bucket = c_bucket.cuda()
+        return h_bucket, c_bucket, z_bucket
 
     def forward(self, features, encoder_out, train=False):
 
@@ -101,17 +101,12 @@ class Decoder_WordLstm(nn.Module):
         # real_char_num = features.chars_size
         for id_char in range(char_features_num):
             # print("id_char", id_char)
-            # if id_char < real_char_num:
             if id_char is 0:
-                h, c, z = self.h_bucket, self.c_bucket, self.z_bucket
+                h, c, z = self.init_hidden_cell(batch_length)
             else:
-                # h, c = state.word_hiddens[-1], state.word_cells[-1]
-                h = state.word_hiddens[-1]
-                c = state.word_cells[-1]
-                # h, c = self.h_bucket, self.c_bucket
+                h, c = state.word_hiddens[-1], state.word_cells[-1]
                 last_pos = Variable(torch.zeros(batch_length)).type(torch.LongTensor)
-                if self.args.use_cuda is True:
-                    last_pos = last_pos.cuda()
+                if self.args.use_cuda is True:  last_pos = last_pos.cuda()
                 pos_id_array = np.array(state.pos_id[-1])
                 last_pos.data.copy_(torch.from_numpy(pos_id_array))
                 # print(last_pos)
@@ -130,23 +125,23 @@ class Decoder_WordLstm(nn.Module):
             if id_char is 0:
                 for i in range(batch_length):
                     output.data[i][self.args.create_alphabet.appID] = -10e9
-            self.action(state, id_char, output, h_now, c_now, train)
+            self.action(state, id_char, output, h_now, c_now, batch_length, train)
             # print(state.words)
             # print(state.word_hiddens[id_char])
             # for i in range(output.size(0)):
             #     char_output.append(output[i].view(1, self.args.label_size))
             # char_output.append(output)
             char_output.append(output.unsqueeze(1))
-            batch_state.append(state)
+        # batch_state.append(state)
         # decoder_out = torch.cat(char_output, 0)
         decoder_out = torch.cat(char_output, 1)
         # decoder_out = decoder_out.permute(1, 0, 2).contiguous()
         # print(decoder_out.size())
         decoder_out = decoder_out.view(batch_length * char_features_num, -1)
         decoder_out = self.softmax(decoder_out)
-        return decoder_out, batch_state
+        return decoder_out, state
 
-    def action(self, state, index, output, hidden_now, cell_now, train):
+    def action(self, state, index, output, hidden_now, cell_now, batch_length, train):
         # print("executing action")
         # train = True
         # if train is True:
@@ -154,7 +149,7 @@ class Decoder_WordLstm(nn.Module):
         action = []
         if train:
             # print("train")
-            for i in range(16):
+            for i in range(batch_length):
                 if index < len(state.gold[i]):
                     action.append(state.gold[i][index])
                 else:
@@ -162,17 +157,13 @@ class Decoder_WordLstm(nn.Module):
             # print(action)
         else:
             # print("eval")
-            for i in range(16):
+            for i in range(batch_length):
                 actionID = self.getMaxindex(self.args, output[i].view(self.args.label_size))
                 action.append(self.args.create_alphabet.label_alphabet.from_id(actionID))
             # print(actionID)
             # print(action)
         state.actions.append(action)
 
-        # word_cells = []
-        # word_hiddens = []
-        # word_cells.append(cell_now)
-        # word_hiddens.append(hidden_now)
         # print(action)
         pos_labels = []
         pos_id = []
@@ -185,8 +176,8 @@ class Decoder_WordLstm(nn.Module):
             pos = act.find("#")
             if pos == -1:
                 # app
-                # if index < len(state.chars[id_batch]):
-                #     state.words[id_batch][-1][-1] += (state.chars[id_batch][index])
+                if index < len(state.chars[id_batch]):
+                    state.words[id_batch][-1] += (state.chars[id_batch][index])
                 # pos_labels.append("#APP")
                 # pos_id.append(self.pos_paddingKey)
                 if act == app:
@@ -195,15 +186,18 @@ class Decoder_WordLstm(nn.Module):
                     pos_id.append(self.pos_paddingKey)
                     # state.words[index][-1][-1] += (state.chars[id_batch][index])
             else:
-                # if index < len(state.chars[id_batch]):
-                #     temp_word = state.chars[id_batch][index]
-                #     words.append(temp_word)
                 posLabel = act[pos + 1:]
-                pos_labels.append(posLabel)
+                if index < len(state.chars[id_batch]):
+                    temp_word = state.chars[id_batch][index]
+                    # words.append(temp_word)
+                    state.words[id_batch].append(temp_word)
+                    state.pos_labels[id_batch].append(posLabel)
+                # pos_labels.append(posLabel)
+
                 posId = self.args.create_alphabet.pos_alphabet.loadWord2idAndId2Word(posLabel)
                 pos_id.append(posId)
-                state.words[id_batch].append(words)
-        state.pos_labels.append(pos_labels)
+                # state.words[id_batch].append(words)
+        # state.pos_labels.append(pos_labels)
         state.pos_id.append(pos_id)
         state.word_cells.append(cell_now)
         state.word_hiddens.append(hidden_now)

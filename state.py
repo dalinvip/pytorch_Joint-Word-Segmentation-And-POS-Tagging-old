@@ -33,18 +33,9 @@ class state_batch_instance:
             self.chars.append(features.inst[index].chars)
             self.gold.append(features.inst[index].gold)
 
-        for _ in range(char_features_num):
+        # for _ in range(char_features_num):
             self.words.append([])
-            # self.pos_id.append([])
-            # self.pos_labels.append([])
-            # # self.actions.append([])
-            # self.actions = []
-            #
-            # self.word_hiddens.append([])
-            # self.word_cells.append([])
-            #
-            # self.all_h.append([])
-            # self.all_c.append([])
+            self.pos_labels.append([])
 
     def show(self):
         print("chars", self.chars)
