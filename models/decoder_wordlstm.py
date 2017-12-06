@@ -38,9 +38,9 @@ class Decoder_WordLstm(nn.Module):
         self.lstmcell.bias_ih.data.uniform_(-np.sqrt(6 / (self.args.rnn_hidden_dim + 1)),
                                             np.sqrt(6 / (self.args.rnn_hidden_dim + 1)))
 
-        self.pos_embed = nn.Embedding(num_embeddings=self.args.pos_size, embedding_dim=self.args.pos_dim,
-                                      padding_idx=self.pos_paddingKey)
-        # self.pos_embed = nn.Embedding(num_embeddings=self.args.pos_size, embedding_dim=self.args.pos_dim)
+        # self.pos_embed = nn.Embedding(num_embeddings=self.args.pos_size, embedding_dim=self.args.pos_dim,
+        #                               padding_idx=self.pos_paddingKey)
+        self.pos_embed = nn.Embedding(num_embeddings=self.args.pos_size, embedding_dim=self.args.pos_dim)
         init.uniform(self.pos_embed.weight,
                      a=-np.sqrt(3 / self.args.pos_dim),
                      b=np.sqrt(3 / self.args.pos_dim))
@@ -158,7 +158,7 @@ class Decoder_WordLstm(nn.Module):
         else:
             # print("eval")
             for i in range(batch_length):
-                actionID = self.getMaxindex(self.args, output[i].view(self.args.label_size))
+                actionID = self.getMaxindex_1(self.args, output[i].view(self.args.label_size))
                 action.append(self.args.create_alphabet.label_alphabet.from_id(actionID))
             # print(actionID)
             # print(action)
@@ -169,9 +169,6 @@ class Decoder_WordLstm(nn.Module):
         pos_id = []
         # print("length action", len(action))
         for id_batch, act in enumerate(action):
-            words = []
-            chars = []
-
             # print(str(id_batch)+"ddddd")
             pos = act.find("#")
             if pos == -1:
@@ -202,11 +199,9 @@ class Decoder_WordLstm(nn.Module):
         state.word_cells.append(cell_now)
         state.word_hiddens.append(hidden_now)
 
-
     def getMaxindex_1(self, args, decoder_output):
         # print("get max index ......")
         decoder_output_list = decoder_output.data.tolist()
-        print(decoder_output_list)
         maxIndex = decoder_output_list.index(np.max(decoder_output_list))
         return maxIndex
 
@@ -219,16 +214,6 @@ class Decoder_WordLstm(nn.Module):
                 maxIndex = idx
         return maxIndex
 
-
-    # def getMaxindex(self, decode_out_acc, args):
-    #     # print("get max index ......")
-    #     max = decode_out_acc.data[0]
-    #     maxIndex = 0
-    #     for idx in range(1, args.label_size):
-    #         if decode_out_acc.data[idx] > max:
-    #             max = decode_out_acc.data[idx]
-    #             maxIndex = idx
-    #     return maxIndex
 
 
 
