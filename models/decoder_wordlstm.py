@@ -189,71 +189,46 @@ class Decoder_WordLstm(nn.Module):
         return h_now, c_now
 
     def batch_action(self, state, index, output, hidden_now, cell_now, batch_length, train):
-        # print("executing action")
-        # train = True
-        # if train is True:
-        # print(output.size())
         action = []
         if train:
-            # print("train")
             for i in range(batch_length):
                 if index < len(state.gold[i]):
                     action.append(state.gold[i][index])
                 else:
                     action.append("ACT")
-            # print(action)
         else:
-            # print("eval")
             for i in range(batch_length):
                 actionID = self.getMaxindex_1(self.args, output[i].view(self.args.label_size))
                 action.append(self.args.create_alphabet.label_alphabet.from_id(actionID))
-            # print(actionID)
-            # print(action)
         state.actions.append(action)
 
-        # print(action)
-        pos_labels = []
         pos_id = []
         start_index = []
-        # print("length action", len(action))
         for id_batch, act in enumerate(action):
-            # print(str(id_batch)+"ddddd")
             pos = act.find("#")
             if pos == -1:
                 # app
                 if index < len(state.chars[id_batch]):
                     state.words[id_batch][-1] += (state.chars[id_batch][index])
                     start_index.append((index + 1) - len(state.words[id_batch][-1]))
-                # elif act is "ACT":
                 else:
                     start_index.append(-1)
-                    # state.words_startindex[index].append(index - len(state.words[id_batch][-1]))
-                    # state.words_startindex.append(start_index)
-                # pos_labels.append("#APP")
-                # pos_id.append(self.pos_paddingKey)
                 if act == app:
                     pos_id.append(state.pos_id[-1][id_batch])
                 elif act == "ACT":
                     pos_id.append(self.pos_paddingKey)
-                    # state.words[index][-1][-1] += (state.chars[id_batch][index])
             else:
                 posLabel = act[pos + 1:]
                 if index < len(state.chars[id_batch]):
                     temp_word = state.chars[id_batch][index]
-                    # words.append(temp_word)
                     state.words[id_batch].append(temp_word)
                     state.pos_labels[id_batch].append(posLabel)
                     start_index.append((index + 1) - len(state.words[id_batch][-1]))
                 else:
                     start_index.append(-1)
-                    # state.words_startindex[index].append(index - len(state.words[id_batch][-1]))
-                    # state.words_startindex.append(start_index)
-                # pos_labels.append(posLabel)
-
                 posId = self.args.create_alphabet.pos_alphabet.loadWord2idAndId2Word(posLabel)
                 pos_id.append(posId)
-                # state.words[id_batch].append(words)
-        # state.pos_labels.append(pos_labels)
+
         state.words_startindex.append(start_index)
         state.pos_id.append(pos_id)
         state.word_cells.append(cell_now)
