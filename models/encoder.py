@@ -55,8 +55,6 @@ class Encoder(nn.Module):
             print("bichar_Embedding")
             pretrained_bichar_weight = np.array(args.pre_bichar_word_vecs)
             self.static_bichar_embed.weight.data.copy_(torch.from_numpy(pretrained_bichar_weight))
-            # print(self.static_bichar_embed.weight.data[self.args.create_static_alphabet.bichar_PaddingID])
-            # print(self.static_bichar_embed.weight.data[self.args.create_static_alphabet.bichar_UnkID])
             for index in range(self.args.embed_bichar_dim):
                 self.static_bichar_embed.weight.data[self.args.create_static_alphabet.bichar_PaddingID][index] = 0
             self.static_bichar_embed.weight.requires_grad = False
@@ -108,14 +106,9 @@ class Encoder(nn.Module):
                     torch.autograd.Variable(torch.zeros(batch, self.args.rnn_hidden_dim)))
 
     def forward(self, features):
-        # print("Encoder forward")
-        # batch_length = features.char_features.size(0)
         batch_length = features.batch_length
-        # char_features_num = features.char_features.size(1)
         char_features_num = features.static_char_features.size(1)
-        # print("char_features_num {}".format(char_features_num))
-        # fine tune
-        # print(features.char_features)
+
         char_features = self.char_embed(features.char_features)
         bichar_left_features = self.bichar_embed(features.bichar_left_features)
         bichar_right_features = self.bichar_embed(features.bichar_right_features)
@@ -128,7 +121,6 @@ class Encoder(nn.Module):
         # dropout
         char_features = self.dropout_embed(char_features)
         bichar_left_features = self.dropout_embed(bichar_left_features)
-        # bichar_left_features = self.dropout_embed(bichar_left_features)
         bichar_right_features = self.dropout_embed(bichar_right_features)
         static_char_features = self.dropout_embed(static_char_features)
         static_bichar_l_features = self.dropout_embed(static_bichar_l_features)
@@ -137,11 +129,9 @@ class Encoder(nn.Module):
         # left concat
         left_concat = torch.cat((char_features, static_char_features, bichar_left_features, static_bichar_l_features), 2)
         # left_concat = left_concat.view(batch_length * char_features_num, self.input_dim)
-        # print(left_concat.size())
         # right concat
         right_concat = torch.cat((char_features, static_char_features, bichar_right_features, static_bichar_r_features), 2)
         # right_concat = right_concat.view(batch_length * char_features_num, self.input_dim)
-        # print(right_concat.size())
 
         # non-linear
         left_concat_non_linear = self.dropout(F.tanh(self.liner(left_concat)))
@@ -150,28 +140,20 @@ class Encoder(nn.Module):
         right_concat_non_linear = self.dropout(F.tanh(self.liner(right_concat)))
         right_concat_input = right_concat_non_linear.permute(1, 0, 2)
         # right_concat = right_concat.view(batch_length, char_features_num, self.args.rnn_hidden_dim)
-        # print(batch_length)
-        # self.hidden_l = self.init_hidden_cell(batch_length)
+
         left_h, left_c = self.init_cell_hidden(batch_length)
-        # print(left_h)
-        # print(left_c)
         left_lstm_output = []
         for idx in range(char_features_num):
-            # left_h, left_c = self.lstm_left(left_concat_input[idx], self.hidden_l)
             left_h, left_c = self.lstm_left(left_concat_input[idx], (left_h, left_c))
             left_h = self.dropout(left_h)
             left_lstm_output.append(left_h.view(batch_length, 1, self.args.rnn_hidden_dim))
         left_lstm_output = torch.cat(left_lstm_output, 1)
 
-        # self.hidden_r = self.init_hidden_cell(batch_length)
         right_h, right_c = self.init_cell_hidden(batch_length)
         right_lstm_output = []
         for idx in reversed(range(char_features_num)):
-            # print(idx)
-            # right_h, right_c = self.lstm_right(right_concat_input[idx], self.hidden_r)
             right_h, right_c = self.lstm_right(right_concat_input[idx], (right_h, right_c))
             right_h = self.dropout(right_h)
-            # right_lstm_output.insert(0, right_h.view(batch_length, 1, self.args.rnn_hidden_dim))
             right_lstm_output.insert(0, right_h.view(batch_length, 1, self.args.rnn_hidden_dim))
         right_lstm_output = torch.cat(right_lstm_output, 1)
 

@@ -118,12 +118,4 @@ if __name__ == "__main__":
     #                             "../pos_test_data/test.ctb60.pos.hwc"), shuffle=True)
     train_data, dev_data, test_data = loaddata.load_data(path=["../pos_test_data/train.ctb60.pos-1.hwc", "../pos_test_data/train.ctb60.pos-1.hwc"
         , "../pos_test_data/train.ctb60.pos-1.hwc"], shuffle=True)
-    # print("\n\n\n\n")
-    # print(train_data)
-    # print("\n\n\n\n")
-    # print(dev_data)
-    # print("\n\n\n\n")
-    # print(test_data)
-    # create_alphabet = Create_Alphabet(min_freq=1)
-    # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data, debug_index=-1)
-    # load_data.loaddate("../pos_test_data/test.ctb60.pos.hwc")
+

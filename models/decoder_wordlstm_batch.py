@@ -54,7 +54,7 @@ class Decoder_WordLstm(nn.Module):
         # self.non_linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2, out_features=self.args.hidden_size,
         #                             bias=True)
 
-        self.combine_linear = nn.Linear(in_features=self.args.pos_dim,
+        self.combine_linear = nn.Linear(in_features=self.args.rnn_hidden_dim * 2 + self.args.pos_dim,
                                         out_features=self.args.hidden_size, bias=True)
 
         init.xavier_uniform(self.linear.weight)
@@ -88,113 +88,181 @@ class Decoder_WordLstm(nn.Module):
     def forward(self, features, encoder_out, train=False):
 
         batch_length = features.batch_length
-        # print(encoder_out.size())
-        # encoder_out = encoder_out.permute(1, 0, 2)
-        encoder_out = torch.transpose(encoder_out, 0, 1)
+        encoder_out = encoder_out.permute(1, 0, 2)
         char_features_num = encoder_out.size(0)
-        # print(char_features_num)
         state = state_batch_instance(features, char_features_num)
-        # print(len(state.gold))
         # state.show()
         char_output = []
-        batch_state = []
-        # real_char_num = features.chars_size
         for id_char in range(char_features_num):
-            # print("id_char", id_char)
-            if id_char is 0:
-                h, c, z = self.init_hidden_cell(batch_length)
-            else:
-                h, c = state.word_hiddens[-1], state.word_cells[-1]
-                last_pos = Variable(torch.zeros(batch_length)).type(torch.LongTensor)
-                if self.args.use_cuda is True:  last_pos = last_pos.cuda()
-                pos_id_array = np.array(state.pos_id[-1])
-                last_pos.data.copy_(torch.from_numpy(pos_id_array))
-                # print(last_pos)
-                # last_pos_embed = self.dropout(self.pos_embed(last_pos))
-                last_pos_embed = self.pos_embed(last_pos)
-                z = self.combine_linear(last_pos_embed)
-                # z = self.dropout(F.tanh(self.combine_linear(last_pos_embed)))
-                # z = self.z_bucket_randn
-            h_now, c_now = self.lstmcell(z, (h, c))
+            h_now, c_now = self.batch_wordLstm(id_char, batch_length, encoder_out, state)
 
             v = torch.cat((h_now, encoder_out[id_char]), 1)
             # print(v)
             output = self.linear(v)
-            # print(output.size())
-            # should cut later write
             if id_char is 0:
                 for i in range(batch_length):
                     output.data[i][self.args.create_alphabet.appID] = -10e9
-            self.action(state, id_char, output, h_now, c_now, batch_length, train)
-            # print(state.words)
-            # print(state.word_hiddens[id_char])
-            # for i in range(output.size(0)):
-            #     char_output.append(output[i].view(1, self.args.label_size))
-            # char_output.append(output)
+            self.batch_action(state, id_char, output, h_now, c_now, batch_length, train)
             char_output.append(output.unsqueeze(1))
-        # batch_state.append(state)
-        # decoder_out = torch.cat(char_output, 0)
         decoder_out = torch.cat(char_output, 1)
-        # decoder_out = decoder_out.permute(1, 0, 2).contiguous()
-        # print(decoder_out.size())
         decoder_out = decoder_out.view(batch_length * char_features_num, -1)
         decoder_out = self.softmax(decoder_out)
         return decoder_out, state
 
-    def action(self, state, index, output, hidden_now, cell_now, batch_length, train):
-        # print("executing action")
-        # train = True
-        # if train is True:
-        # print(output.size())
+    def batch_wordLstm_1(self, id_char, batch_length, encoder_out, state):
+        if id_char is 0:
+            h, c, z = self.init_hidden_cell(batch_length)
+        else:
+            h, c = state.word_hiddens[-1], state.word_cells[-1]
+            # copy with the pos features
+            last_pos = Variable(torch.zeros(batch_length)).type(torch.LongTensor)
+            if self.args.use_cuda is True:  last_pos = last_pos.cuda()
+            pos_id_array = np.array(state.pos_id[-1])
+            last_pos.data.copy_(torch.from_numpy(pos_id_array))
+            # print(last_pos)
+            last_pos_embed = self.dropout(self.pos_embed(last_pos))
+
+            # copy with the word features
+            batch_char_embed = []
+            for id_batch in range(len(state.words_startindex[-1])):
+                chars_embed = []
+                last_word_len = 0
+                if state.words_startindex[-1][id_batch] is -1:
+                    word_bucket = Variable(torch.zeros(1, 2 * self.args.rnn_hidden_dim))
+                    if self.args.use_cuda is True:
+                        word_bucket = word_bucket.cuda()
+                    batch_char_embed.append(word_bucket)
+                    continue
+                for index_char in range(state.words_startindex[-1][id_batch], id_char):
+                    last_word_len += 1
+                    chars_embed.append(encoder_out[index_char][id_batch].view(1, 1, 2 * self.args.rnn_hidden_dim))
+                chars_embed = torch.cat(chars_embed, 1)
+                last_word_embed = F.avg_pool1d(chars_embed.permute(0, 2, 1), last_word_len).view(1, self.args.rnn_hidden_dim * 2)
+                batch_char_embed.append(last_word_embed)
+            batch_char_embed = torch.cat(batch_char_embed, 0)
+            # print("batch_char_embed", batch_char_embed.size())
+            concat = torch.cat((last_pos_embed, batch_char_embed), 1)
+            z = self.dropout(F.tanh(self.combine_linear(concat)))
+        h_now, c_now = self.lstmcell(z, (h, c))
+
+        return h_now, c_now
+
+    def batch_wordLstm_2(self, id_char, batch_length, encoder_out, state):
+        if id_char is 0:
+            h, c, z = self.init_hidden_cell(batch_length)
+        else:
+            h, c = state.word_hiddens[-1], state.word_cells[-1]
+            # copy with the pos features
+            last_pos = Variable(torch.zeros(batch_length)).type(torch.LongTensor)
+            if self.args.use_cuda is True:  last_pos = last_pos.cuda()
+            pos_id_array = np.array(state.pos_id[-1])
+            last_pos.data.copy_(torch.from_numpy(pos_id_array))
+            # print(last_pos)
+            last_pos_embed = self.dropout(self.pos_embed(last_pos))
+
+            # copy with the word features
+            batch_char_embed = []
+            for id_batch, id_batch_value in enumerate(state.words_startindex[-1]):
+                chars_embed = []
+                last_word_len = 0
+                if id_batch_value is -1:
+                    word_bucket = Variable(torch.zeros(1, 2 * self.args.rnn_hidden_dim))
+                    if self.args.use_cuda is True:
+                        word_bucket = word_bucket.cuda()
+                    batch_char_embed.append(word_bucket)
+                    continue
+                last_word_len = id_char - id_batch_value
+                chars_embed.append(encoder_out.permute(1, 0, 2)[id_batch][id_batch_value:id_char].view(1, last_word_len, 2 * self.args.rnn_hidden_dim))
+                chars_embed = torch.cat(chars_embed, 1)
+                last_word_embed = F.avg_pool1d(chars_embed.permute(0, 2, 1), last_word_len).view(1, self.args.rnn_hidden_dim * 2)
+                batch_char_embed.append(last_word_embed)
+            batch_char_embed = torch.cat(batch_char_embed, 0)
+            concat = torch.cat((last_pos_embed, batch_char_embed), 1)
+            z = self.dropout(F.tanh(self.combine_linear(concat)))
+        h_now, c_now = self.lstmcell(z, (h, c))
+
+        return h_now, c_now
+
+    def batch_wordLstm(self, id_char, batch_length, encoder_out, state):
+        if id_char is 0:
+            h, c, z = self.init_hidden_cell(batch_length)
+        else:
+            h, c = state.word_hiddens[-1], state.word_cells[-1]
+            # copy with the pos features
+            last_pos = Variable(torch.zeros(batch_length)).type(torch.LongTensor)
+            if self.args.use_cuda is True:  last_pos = last_pos.cuda()
+            pos_id_array = np.array(state.pos_id[-1])
+            last_pos.data.copy_(torch.from_numpy(pos_id_array))
+            # print(last_pos)
+            last_pos_embed = self.dropout(self.pos_embed(last_pos))
+
+            # copy with the word features
+            batch_char_embed = []
+            for id_batch, id_batch_value in enumerate(state.words_startindex[-1]):
+                chars_embed = []
+                last_word_len = 0
+                if id_batch_value is -1:
+                    word_bucket = Variable(torch.zeros(1, 2 * self.args.rnn_hidden_dim))
+                    if self.args.use_cuda is True:
+                        word_bucket = word_bucket.cuda()
+                    batch_char_embed.append(word_bucket)
+                    continue
+                last_word_len = id_char - id_batch_value
+                chars_embed.append((encoder_out.permute(1, 0, 2)[id_batch][id_batch_value:id_char].unsqueeze(0)))
+                # chars_embed = torch.cat(list(encoder_out.permute(1, 0, 2)[id_batch][id_batch_value:id_char].view(1, last_word_len, 2 * self.args.rnn_hidden_dim)), 1)
+                chars_embed = torch.cat(chars_embed, 1).permute(0, 2, 1)
+                last_word_embed = F.avg_pool1d(chars_embed, chars_embed.size(2)).squeeze(2)
+                batch_char_embed.append(last_word_embed)
+            batch_char_embed = torch.cat(batch_char_embed, 0)
+            concat = torch.cat((last_pos_embed, batch_char_embed), 1)
+            z = self.dropout(F.tanh(self.combine_linear(concat)))
+        h_now, c_now = self.lstmcell(z, (h, c))
+
+        return h_now, c_now
+
+    def batch_action(self, state, index, output, hidden_now, cell_now, batch_length, train):
         action = []
         if train:
-            # print("train")
             for i in range(batch_length):
                 if index < len(state.gold[i]):
                     action.append(state.gold[i][index])
                 else:
                     action.append("ACT")
-            # print(action)
         else:
-            # print("eval")
             for i in range(batch_length):
                 actionID = self.getMaxindex_1(self.args, output[i].view(self.args.label_size))
                 action.append(self.args.create_alphabet.label_alphabet.from_id(actionID))
-            # print(actionID)
-            # print(action)
         state.actions.append(action)
 
-        # print(action)
-        pos_labels = []
         pos_id = []
-        # print("length action", len(action))
+        start_index = []
         for id_batch, act in enumerate(action):
-            # print(str(id_batch)+"ddddd")
             pos = act.find("#")
             if pos == -1:
                 # app
                 if index < len(state.chars[id_batch]):
                     state.words[id_batch][-1] += (state.chars[id_batch][index])
-                # pos_labels.append("#APP")
-                # pos_id.append(self.pos_paddingKey)
+                    start_index.append((index + 1) - len(state.words[id_batch][-1]))
+                else:
+                    start_index.append(-1)
+
                 if act == app:
                     pos_id.append(state.pos_id[-1][id_batch])
                 elif act == "ACT":
                     pos_id.append(self.pos_paddingKey)
-                    # state.words[index][-1][-1] += (state.chars[id_batch][index])
             else:
                 posLabel = act[pos + 1:]
                 if index < len(state.chars[id_batch]):
                     temp_word = state.chars[id_batch][index]
-                    # words.append(temp_word)
                     state.words[id_batch].append(temp_word)
                     state.pos_labels[id_batch].append(posLabel)
-                # pos_labels.append(posLabel)
-
+                    start_index.append((index + 1) - len(state.words[id_batch][-1]))
+                else:
+                    start_index.append(-1)
                 posId = self.args.create_alphabet.pos_alphabet.loadWord2idAndId2Word(posLabel)
                 pos_id.append(posId)
-                # state.words[id_batch].append(words)
-        # state.pos_labels.append(pos_labels)
+
+        state.words_startindex.append(start_index)
         state.pos_id.append(pos_id)
         state.word_cells.append(cell_now)
         state.word_hiddens.append(hidden_now)

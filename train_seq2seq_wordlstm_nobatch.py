@@ -137,21 +137,6 @@ def cal_train_acc(batch_features, train_eval, batch_count, decoder_out, maxCharS
                 train_eval.correct_num += 1
         train_eval.gold_num += inst.chars_size
 
-#
-# def cal_train_acc(batch_features, batch_count, decode_out, maxCharSize, args):
-#     # print("calculate the acc of train ......")
-#     correct = 0
-#     total_num = 0
-#     for index in range(batch_features.batch_length):
-#         inst = batch_features.inst[index]
-#         for char_index in range(inst.chars_size):
-#             max_index = getMaxindex(decode_out[index][char_index], args)
-#             if max_index == inst.gold_index[char_index]:
-#                 correct += 1
-#         total_num += inst.chars_size
-#     acc = correct / total_num
-#     return acc, correct, total_num
-
 
 def jointPRF(inst, state, seg_eval, pos_eval):
     words = state.words
@@ -223,13 +208,16 @@ def eval(data_iter, model_encoder, model_decoder, args, eval_seg, eval_pos):
     eval_start = time.time()
     # eval_seg = Eval()
     # eval_pos = Eval()
+    time_list = []
     for batch_features in data_iter:
+        start = time.time()
         encoder_out = model_encoder(batch_features)
         decoder_out, state = model_decoder(batch_features, encoder_out, train=False)
+        time_list.append(time.time() - start)
         for i in range(batch_features.batch_length):
-            jointPRF_Batch(batch_features.inst[i], state.words[i], state.pos_labels[i], eval_seg, eval_pos)
-            # jointPRF(batch_features.inst[i], state[i], eval_seg, eval_pos)
+            jointPRF(batch_features.inst[i], state[i], eval_seg, eval_pos)
     # calculate the time
+    print("eval decoder time cost: ", sum(time_list), 's')
     print("eval time cost: ", time.time() - eval_start, 's')
 
     # calculate the F-Score

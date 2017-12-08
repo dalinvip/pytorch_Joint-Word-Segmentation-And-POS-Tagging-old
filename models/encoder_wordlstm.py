@@ -110,14 +110,9 @@ class Encoder_WordLstm(nn.Module):
                     torch.autograd.Variable(torch.zeros(batch, self.args.rnn_hidden_dim)))
 
     def forward(self, features):
-        # print("Encoder forward")
-        # batch_length = features.char_features.size(0)
         batch_length = features.batch_length
-        # char_features_num = features.char_features.size(1)
         char_features_num = features.static_char_features.size(1)
-        # print("char_features_num {}".format(char_features_num))
         # fine tune
-        # print(features.char_features)
         char_features = self.char_embed(features.char_features)
         bichar_left_features = self.bichar_embed(features.bichar_left_features)
         bichar_right_features = self.bichar_embed(features.bichar_right_features)
@@ -130,7 +125,6 @@ class Encoder_WordLstm(nn.Module):
         # dropout
         char_features = self.dropout_embed(char_features)
         bichar_left_features = self.dropout_embed(bichar_left_features)
-        # bichar_left_features = self.dropout_embed(bichar_left_features)
         bichar_right_features = self.dropout_embed(bichar_right_features)
         static_char_features = self.dropout_embed(static_char_features)
         static_bichar_l_features = self.dropout_embed(static_bichar_l_features)
@@ -158,8 +152,6 @@ class Encoder_WordLstm(nn.Module):
             middle = right_concat_input.size(1) // 2
             # print(middle)
             for i, j in zip(range(0, middle, 1), range(right_concat_input.size(1) - 1, middle, -1)):
-                # temp = torch.zeros(right_concat_input[batch][i].size())
-                # print(right_concat_input[batch][12].size())
                 temp = torch.zeros(right_concat_input[batch][i].data.size())
                 temp.copy_(right_concat_input[batch][i].data)
                 right_concat_input[batch][i].data.copy_(right_concat_input[batch][j].data)
@@ -179,14 +171,11 @@ class Encoder_WordLstm(nn.Module):
         lstm_left_out, _ = self.lstm_left(left_concat_input)
         lstm_right_out, _ = self.lstm_right(right_concat_input)
 
-        # print("size", lstm_right_out.size())
         # reverse lstm_right_out
         lstm_right_out = lstm_right_out.permute(1, 0, 2)
         for batch in range(batch_length):
             middle = lstm_right_out.size(1) // 2
-            # print(middle)
             for i, j in zip(range(0, middle, 1), range(lstm_right_out.size(1) - 1, middle, -1)):
-                # temp = torch.FloatTensor(lstm_right_out[batch][i].size())
                 temp = torch.zeros(lstm_right_out[batch][i].size())
                 temp.copy_(lstm_right_out[batch][i].data)
                 lstm_right_out[batch][i].data.copy_(lstm_right_out[batch][j].data)

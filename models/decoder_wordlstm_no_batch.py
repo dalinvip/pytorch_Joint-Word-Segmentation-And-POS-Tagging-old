@@ -17,11 +17,11 @@ random.seed(hy.seed_num)
 """
 
 
-class Decoder(nn.Module):
+class Decoder_WordLstm(nn.Module):
 
     def __init__(self, args):
         print("Decoder model")
-        super(Decoder, self).__init__()
+        super(Decoder_WordLstm, self).__init__()
         self.args = args
 
         # self.lstm = nn.LSTM(input_size=self.args.hidden_size, hidden_size=self.args.rnn_hidden_dim, bias=True)
@@ -89,20 +89,20 @@ class Decoder(nn.Module):
             real_char_num = feature.chars_size
             for id_char in range(char_features_num):
                 if id_char < real_char_num:
-                    # hidden_now, cell_now = self.word_lstm(state, id_char, encoder_out[id_batch])
+                    hidden_now, cell_now = self.word_lstm(state, id_char, encoder_out[id_batch])
                     # print(hidden_now)
 
                     # not use lstm
-                    v = torch.cat((self.bucket_rnn, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
+                    # v = torch.cat((self.bucket_rnn, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
                     # use lstm
-                    # v = torch.cat((hidden_now, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
+                    v = torch.cat((hidden_now, encoder_out[id_batch][id_char].view(1, self.args.rnn_hidden_dim * 2)), 1)
                     # print("232", v.size())
                     output = self.linear(v)
                     if id_char == 0:
                         # print("oooooo")
                         output.data[0][self.args.create_alphabet.appID] = -10e+99
                     # self.action(state, id_char, encoder_out[id_batch], output, train)
-                    self.action(state, id_char, output, None, None, train)
+                    self.action(state, id_char, output, hidden_now, cell_now, train)
                     sent_output.append(output)
                 else:
                     sent_output.append(self.bucket)
@@ -118,14 +118,11 @@ class Decoder(nn.Module):
         return batch_output, batch_state
 
     def word_lstm(self, state, index, encoder_out):
-        # print("executing word lstm")
         if index is 0:
-            # print("index is zero")
             hidden_last = self.h_bucket
             cell_last = self.c_bucket
             z = self.z_bucket
         else:
-            # print("index is not zero")
             hidden_last = state.word_hiddens[-1]
             cell_last = state.word_cells[-1]
             if len(state.pos_id) >= 1:
@@ -148,10 +145,6 @@ class Decoder(nn.Module):
             concat = torch.cat((last_pos_embed, last_word_embed), 1)
             z = self.dropout(F.tanh(self.combine_linear(concat)))
 
-        # print("z", z.size())
-        # print("hidden", hidden_last.size())
-        # print("cell", cell_last.size())
-
         hidden_now, cell_now = self.lstmcell(z, (hidden_last, cell_last))
         state.all_h.append(hidden_now)
         state.all_c.append(cell_now)
@@ -159,16 +152,11 @@ class Decoder(nn.Module):
         return hidden_now, cell_now
 
     def action(self, state, index, output, hidden_now, cell_now, train):
-        # print("executing action")
-        # train = True
-        # if train is True:
         if train:
             action = state.gold[index]
         else:
             actionID = self.getMaxindex(self.args, output.view(self.args.label_size))
             action = self.args.create_alphabet.label_alphabet.from_id(actionID)
-            # print(actionID)
-            # print(action)
         state.actions.append(action)
 
         pos = action.find("#")
@@ -193,18 +181,6 @@ class Decoder(nn.Module):
                 max = decoder_output.data[idx]
                 maxIndex = idx
         return maxIndex
-
-
-    # def getMaxindex(self, decode_out_acc, args):
-    #     # print("get max index ......")
-    #     max = decode_out_acc.data[0]
-    #     maxIndex = 0
-    #     for idx in range(1, args.label_size):
-    #         if decode_out_acc.data[idx] > max:
-    #             max = decode_out_acc.data[idx]
-    #             maxIndex = idx
-    #     return maxIndex
-
 
 
 

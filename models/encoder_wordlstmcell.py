@@ -168,15 +168,6 @@ class Encoder_WordLstm(nn.Module):
         left_lstm_output = torch.cat(left_lstm_output, 1)
         right_lstm_output = torch.cat(right_lstm_output, 1)
 
-        # # self.hidden_r = self.init_hidden_cell(batch_length)
-        # right_h, right_c = self.init_cell_hidden(batch_length)
-        # right_lstm_output = []
-        # for idx in reversed(range(char_features_num)):
-        #     right_h, right_c = self.lstm_right(right_concat_input[idx], (right_h, right_c))
-        #     right_h = self.dropout(right_h)
-        #     right_lstm_output.insert(0, right_h.view(batch_length, 1, self.args.rnn_hidden_dim))
-        # right_lstm_output = torch.cat(right_lstm_output, 1)
-
         encoder_output = torch.cat((left_lstm_output, right_lstm_output), 2)
 
         return encoder_output

@@ -10,13 +10,13 @@ from loaddata.Alphabet import Create_Alphabet, Alphabet
 from loaddata.Batch_Iterator import Iterators
 from models import encoder
 from models import decoder
-from models import decoder_wordlstm
-from models import decoder_wordlstm_sorce
+from models import decoder_wordlstm_batch
+from models import decoder_wordlstm_no_batch
 from models import decoder_nowordlstm
 from models import encoder_wordlstm
 from models import encoder_wordlstmcell
-import train_seq2seq
-import train_seq2seq_wordlstm
+import train_seq2seq_wordlstm_batch
+import train_seq2seq_wordlstm_nobatch
 import multiprocessing as mu
 import shutil
 import random
@@ -117,35 +117,24 @@ def dalaloader(args):
     # create the alphabet
     create_alphabet = Create_Alphabet(min_freq=args.min_freq, word_min_freq=args.word_min_freq,
                                       char_min_freq=args.char_min_freq, bichar_min_freq=args.bichar_min_freq)
-    # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
     create_alphabet.createAlphabet(train_data=train_data)
-
-    # create_alphabet_iter = create_alphabet
-    # create_alphabet_iter = Create_Alphabet(min_freq=args.min_freq)
-    # # create_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
-    # create_alphabet_iter.createAlphabet(train_data=train_data)
 
     create_static_alphabet = Create_Alphabet(min_freq=args.min_freq, word_min_freq=args.min_freq,
                                              char_min_freq=args.min_freq, bichar_min_freq=args.min_freq)
     create_static_alphabet.createAlphabet(train_data=train_data, dev_data=dev_data, test_data=test_data)
-    # create_static_alphabet.createAlphabet(train_data=train_data)
     # create iterator
     create_iter = Iterators()
     train_iter, dev_iter, test_iter = create_iter.createIterator(batch_size=[args.batch_size, args.dev_batch_size,
                                                                              args.test_batch_size],
                                                                  data=[train_data, dev_data, test_data],
-                                                                 # operator=create_static_alphabet, args=args)
                                                                  operator=create_alphabet,
                                                                  operator_static=create_static_alphabet, args=args)
-                                                                 # operator=create_alphabet_iter, args=args)
     return train_iter, dev_iter, test_iter, create_alphabet, create_static_alphabet
-    # return train_iter, dev_iter, test_iter, create_alphabet, create_alphabet
 
 
 # get iter
 train_iter, dev_iter, test_iter, create_alphabet, create_static_alphabet = dalaloader(args)
 
-# print(create_alphabet.char_alphabet.id2words)
 
 if args.char_Embedding is True:
     print("loading char embedding.......")
@@ -175,16 +164,11 @@ if args.bichar_Embedding is True:
     #                                                                  k=args.embed_bichar_dim)
     # print(bichar_word_vecs)
 
-
 # # handle external word embedding to file for convenience
 # from loaddata.handle_wordEmbedding2File import WordEmbedding2File
 # wordembedding = WordEmbedding2File(wordEmbedding_path=args.bichar_Embedding_Path,
 #                                    vocab=create_static_alphabet.bichar_alphabet.id2words, k_dim=200)
 # wordembedding.handle()
-
-
-
-
 
 # update parameters
 if args.char_Embedding is True:
@@ -198,8 +182,6 @@ args.embed_char_num = create_alphabet.char_alphabet.m_size
 args.embed_bichar_num = create_alphabet.bichar_alphabet.m_size
 args.static_embed_char_num = create_static_alphabet.char_alphabet.m_size
 args.static_embed_bichar_num = create_static_alphabet.bichar_alphabet.m_size
-print("wwwww", args.embed_char_num)
-print("wwwww", args.static_embed_char_num)
 print("create_alphabet.char_alphabet.m_size", create_alphabet.char_alphabet.m_size)
 print("create_static_alphabet.char_alphabet.m_size", create_static_alphabet.char_alphabet.m_size)
 
@@ -209,7 +191,6 @@ args.pos_size = create_alphabet.pos_alphabet.m_size
 
 args.create_alphabet = create_alphabet
 args.create_static_alphabet = create_static_alphabet
-# print(args.label_size)
 # save file
 mulu = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 args.mulu = mulu
@@ -238,18 +219,19 @@ shutil.copy("./hyperparams.py", "./snapshot/" + mulu)
 # load model
 model_encoder = None
 model_decoder = None
+# wordlstm and batch
 if args.Wordlstm is True:
     print("loading word lstm decoder model")
-    model_decoder = decoder_wordlstm.Decoder_WordLstm(args=args)
-    # model_decoder = decoder_wordlstm_sorce.Decoder_WordLstm(args=args)
+    model_decoder = decoder_wordlstm_batch.Decoder_WordLstm(args=args)
+    # model_decoder = decoder_wordlstm_no_batch.Decoder_WordLstm(args=args)
     if args.Encoder_LSTM is True:
         model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
     elif args.Encoder_LSTMCell is True:
         model_encoder = encoder_wordlstmcell.Encoder_WordLstm(args)
 else:
-    # model_decoder = decoder.Decoder(args=args)
     model_decoder = decoder_nowordlstm.Decoder(args=args)
     # model_encoder = encoder_wordlstm.Encoder_WordLstm(args)
+    # model_encoder = encoder_wordlstmcell.Encoder_WordLstm(args)
     model_encoder = encoder.Encoder(args=args)
 print(model_encoder)
 print(model_decoder)
@@ -264,13 +246,13 @@ print("\n CPU Count is {} and Current Process is {} \n".format(mu.cpu_count(), m
 torch.set_num_threads(args.num_threads)
 if args.Wordlstm is True:
     print("train_seq2seq_wordlstm")
-    train_seq2seq_wordlstm.train(train_iter=train_iter, dev_iter=dev_iter, test_iter=test_iter,
-                                 model_encoder=model_encoder,
-                                 model_decoder=model_decoder, args=args)
+    train_seq2seq_wordlstm_batch.train(train_iter=train_iter, dev_iter=dev_iter, test_iter=test_iter,
+                                       model_encoder=model_encoder,
+                                       model_decoder=model_decoder, args=args)
 else:
     print("train_seq2seq")
-    train_seq2seq.train(train_iter=train_iter, dev_iter=dev_iter, test_iter=test_iter,
-                        model_encoder=model_encoder,
-                        model_decoder=model_decoder, args=args)
+    train_seq2seq_wordlstm_nobatch.train(train_iter=train_iter, dev_iter=dev_iter, test_iter=test_iter,
+                                         model_encoder=model_encoder,
+                                         model_decoder=model_decoder, args=args)
 
 

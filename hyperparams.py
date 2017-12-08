@@ -41,7 +41,6 @@ class Hyperparams():
         self.static = False
         # model
         self.Wordlstm = True
-        # self.WordlstmCell =
         self.Encoder_LSTM = False
         self.Encoder_LSTMCell = True
         # select optim algorhtim to train

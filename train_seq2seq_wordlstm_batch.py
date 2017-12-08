@@ -73,6 +73,7 @@ def train(train_iter, dev_iter, test_iter, model_encoder, model_decoder, args):
             cal_train_acc(batch_features, train_eval, batch_count, decoder_out, maxCharSize, args)
 
             loss = torch.nn.functional.nll_loss(decoder_out, batch_features.gold_features)
+            # loss = F.cross_entropy(decoder_out, batch_features.gold_features)
 
             loss.backward()
 
@@ -136,25 +137,37 @@ def cal_train_acc(batch_features, train_eval, batch_count, decoder_out, maxCharS
                 train_eval.correct_num += 1
         train_eval.gold_num += inst.chars_size
 
-#
-# def cal_train_acc(batch_features, batch_count, decode_out, maxCharSize, args):
-#     # print("calculate the acc of train ......")
-#     correct = 0
-#     total_num = 0
-#     for index in range(batch_features.batch_length):
-#         inst = batch_features.inst[index]
-#         for char_index in range(inst.chars_size):
-#             max_index = getMaxindex(decode_out[index][char_index], args)
-#             if max_index == inst.gold_index[char_index]:
-#                 correct += 1
-#         total_num += inst.chars_size
-#     acc = correct / total_num
-#     return acc, correct, total_num
-
 
 def jointPRF(inst, state, seg_eval, pos_eval):
     words = state.words
     posLabels = state.pos_labels
+    count = 0
+    predict_seg = []
+    predict_pos = []
+
+    for idx in range(len(words)):
+        w = words[idx]
+        posLabel = posLabels[idx]
+        predict_seg.append('[' + str(count) + ',' + str(count + len(w)) + ']')
+        predict_pos.append('[' + str(count) + ',' + str(count + len(w)) + ']' + posLabel)
+        count += len(w)
+
+    seg_eval.gold_num += len(inst.gold_seg)
+    seg_eval.predict_num += len(predict_seg)
+    for p in predict_seg:
+        if p in inst.gold_seg:
+            seg_eval.correct_num += 1
+
+    pos_eval.gold_num += len(inst.gold_pos)
+    pos_eval.predict_num += len(predict_pos)
+    for p in predict_pos:
+        if p in inst.gold_pos:
+            pos_eval.correct_num += 1
+
+
+def jointPRF_Batch(inst, state_words, state_posLabel, seg_eval, pos_eval):
+    words = state_words
+    posLabels = state_posLabel
     count = 0
     predict_seg = []
     predict_pos = []
@@ -192,29 +205,27 @@ def getMaxindex(decode_out_acc, args):
 
 def eval(data_iter, model_encoder, model_decoder, args, eval_seg, eval_pos):
     # eval time
-
-    test_eval_start = time.time()
-    time_list = []
+    eval_start = time.time()
     # eval_seg = Eval()
     # eval_pos = Eval()
+    time_list = []
     for batch_features in data_iter:
-        eval_start = time.time()
+        start = time.time()
         encoder_out = model_encoder(batch_features)
         decoder_out, state = model_decoder(batch_features, encoder_out, train=False)
-        time_list.append(time.time() - eval_start)
+        time_list.append(time.time() - start)
         for i in range(batch_features.batch_length):
-            jointPRF(batch_features.inst[i], state[i], eval_seg, eval_pos)
+            jointPRF_Batch(batch_features.inst[i], state.words[i], state.pos_labels[i], eval_seg, eval_pos)
+            # jointPRF(batch_features.inst[i], state[i], eval_seg, eval_pos)
     # calculate the time
     print("eval decoder time cost: ", sum(time_list), 's')
-    print("eval used time cost: ", time.time() - test_eval_start, 's')
+    print("eval time cost: ", time.time() - eval_start, 's')
 
     # calculate the F-Score
     p, r, f = eval_seg.getFscore()
-    # print("\n")
     print("seg: precision = {}%  recall = {}% , f-score = {}%".format(p, r, f))
     p, r, f = eval_pos.getFscore()
     print("pos: precision = {}%  recall = {}% , f-score = {}%\n".format(p, r, f))
-    # print("\n")
 
     # model_encoder.train()
     # model_decoder.train()
