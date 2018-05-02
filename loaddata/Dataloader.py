@@ -63,9 +63,9 @@ class load_data():
                 os.remove("./temp_data.txt")
 
         file = open("./temp_data.txt", mode="w", encoding="UTF-8")
-        file.writelines(lines)
-        # for line in lines:
-        #     file.write(line)
+        # file.writelines(lines)
+        for line in lines:
+            file.write(line.strip() + "\n")
 
     def load_one_date(self, path=None, shuffle=False):
         print("loading {} data......".format(path))
