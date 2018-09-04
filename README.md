@@ -1,10 +1,9 @@
 ## Introduction
-	pytorch implement  Chinese Word Segmentation and POS Tagging using seq2seq model
+[A Simple and Effective Neural Model for Joint Word Segmentation and POS Tagging](https://zhangmeishan.github.io/ChineseLexicalProcessing.pdf), implement in pytorch.
 
 ## Requirement
-	* python 3
-	* pytorch > 0.1(I used pytorch 0.2.0 and 0.3.0)
-	* numpy
+	* python == 3.6.1
+	* pytorch == 0.3.1
 
 ## Performance  Result
 	update later
